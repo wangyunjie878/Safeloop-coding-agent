@@ -48,7 +48,7 @@ Red test evidence: `python -m pytest tests/test_models_events.py tests/test_conf
 
 Green/final test evidence: `python -m pytest tests/test_models_events.py tests/test_config.py -v` passed 26/26, and `python -m pytest -v` passed 32/32.
 
-Commit hash: pending commit `fix(task-3): wire runtime redaction secrets`
+Commit hash: `f5aad67`
 
 Files changed: `safeloop/models.py`, `safeloop/config.py`, `safeloop/events.py`, `safeloop/run_manager.py`, `tests/test_models_events.py`, `tests/test_config.py`, `PLAN.md`, `AGENT_LOG.md`, `.superpowers/sdd/task-3-report.md`
 
