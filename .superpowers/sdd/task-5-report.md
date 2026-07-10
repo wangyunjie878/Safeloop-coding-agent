@@ -63,3 +63,54 @@ Observed result:
 - Scope stayed within Task 5: no command execution, dispatcher, file tools, LLM provider calls, or UI work.
 - `GuardrailEngine.evaluate()` applies deny over approval and approval over allow.
 - Default blocked path and command patterns are deterministic and path/command checks stay local.
+
+## Review-Fix
+
+Commit `5a48883` (`fix(task-5): guard generic action arguments`).
+
+### RED Evidence
+
+Command:
+
+```bash
+python -m pytest tests/test_guardrails.py -v
+```
+
+Observed result before the fix:
+
+```text
+tests\test_guardrails.py::test_guardrail_denies_unknown_action_with_sensitive_path FAILED
+E       AssertionError: assert 'allow' == 'deny'
+tests\test_guardrails.py::test_guardrail_requires_approval_for_unknown_action_command FAILED
+E       AssertionError: assert 'allow' == 'require_approval'
+```
+
+### GREEN Evidence
+
+Focused command:
+
+```bash
+python -m pytest tests/test_guardrails.py -v
+```
+
+Observed result:
+
+```text
+8 passed in 0.16s
+```
+
+Full-suite command:
+
+```bash
+python -m pytest -v
+```
+
+Observed result:
+
+```text
+54 passed in 0.77s
+```
+
+### Review-Fix Note
+
+`GuardrailEngine.evaluate()` now preserves the explicit `read_file`/`write_file` and `run_command`/`run_tests` handlers, while unknown actions with relevant `path` or `command` arguments are still checked through the same deny/approval rules.

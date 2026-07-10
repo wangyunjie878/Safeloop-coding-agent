@@ -785,6 +785,8 @@ Update `PLAN.md` Task 5 with the commit hash and append an `AGENT_LOG.md` entry.
 
 Task 5 implementation commit: `92c7022` (`feat(task-5): add deterministic guardrails`).
 
+Task 5 review-fix commit: `5a48883` (`fix(task-5): guard generic action arguments`).
+
 ---
 
 ### Task 6: Workspace-Bounded File Tools
