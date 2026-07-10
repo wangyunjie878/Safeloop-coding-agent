@@ -233,6 +233,26 @@ def test_run_manager_creates_run_and_state_event(tmp_path: Path):
     assert events[0].payload["task"] == "fix failing test"
 
 
+def test_default_run_manager_redacts_runtime_secret_values_from_configured_env_vars(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    monkeypatch.setenv("SAFELOOP_RUNTIME_SECRET", "plain-runtime-secret")
+    config = HarnessConfig(
+        workspace=tmp_path,
+        test_command="python -m pytest",
+        redaction_secret_env_vars=["SAFELOOP_RUNTIME_SECRET"],
+    )
+    manager = RunManager()
+
+    run = manager.create_run("fix failing test", config)
+    manager.update_status(run.id, "running", reason="plain-runtime-secret")
+
+    events = manager.event_store.list(run.id)
+
+    assert events[-1].payload["reason"] == "[REDACTED]"
+    assert "plain-runtime-secret" not in str(events[-1].payload)
+
+
 def test_event_log_store_redacts_payload_before_persisting():
     store = EventLogStore()
     event = Event(

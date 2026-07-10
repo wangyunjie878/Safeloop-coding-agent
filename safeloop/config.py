@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import os
 from typing import Any
 
 import yaml
@@ -86,3 +87,14 @@ def load_config(path: Path | str) -> HarnessConfig:
         return HarnessConfig.model_validate(normalized)
     except ValidationError as exc:
         raise ConfigError(_format_validation_error(exc)) from exc
+
+
+def collect_runtime_redaction_secrets(config: HarnessConfig) -> list[str]:
+    secrets: list[str] = []
+    seen: set[str] = set()
+    for env_var_name in config.redaction_secret_env_vars:
+        value = os.environ.get(env_var_name)
+        if value and value not in seen:
+            secrets.append(value)
+            seen.add(value)
+    return secrets

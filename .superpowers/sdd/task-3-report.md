@@ -39,3 +39,17 @@ Commit hash: `88f4537`
 Files changed: `safeloop/events.py`, `safeloop/security/redaction.py`, `tests/test_models_events.py`, `AGENT_LOG.md`, `PLAN.md`, `.superpowers/sdd/task-3-report.md`
 
 Concerns: `EventLogStore` now supports deterministic `known_secrets`, but the store remains intentionally in-memory only and the new secret-key heuristics are conservative rather than exhaustive.
+
+Follow-up fix:
+
+Status: completed
+
+Red test evidence: `python -m pytest tests/test_models_events.py tests/test_config.py -v` failed in three places: `test_default_run_manager_redacts_runtime_secret_values_from_configured_env_vars` raised `ValidationError` because `HarnessConfig` rejected `redaction_secret_env_vars`, `test_load_config_applies_defaults` hit `AttributeError: 'HarnessConfig' object has no attribute 'redaction_secret_env_vars'`, and `test_load_config_keeps_redaction_secret_env_var_names_not_values` failed with `ConfigError: redaction_secret_env_vars: Extra inputs are not permitted`.
+
+Green/final test evidence: `python -m pytest tests/test_models_events.py tests/test_config.py -v` passed 26/26, and `python -m pytest -v` passed 32/32.
+
+Commit hash: pending commit `fix(task-3): wire runtime redaction secrets`
+
+Files changed: `safeloop/models.py`, `safeloop/config.py`, `safeloop/events.py`, `safeloop/run_manager.py`, `tests/test_models_events.py`, `tests/test_config.py`, `PLAN.md`, `AGENT_LOG.md`, `.superpowers/sdd/task-3-report.md`
+
+Concerns: runtime secret collection is intentionally environment-only and only runs through `RunManager.create_run(config)`, so callers that bypass that path must still provide `known_secrets` explicitly if they persist secret-bearing events outside the managed run flow.

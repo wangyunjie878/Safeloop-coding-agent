@@ -25,6 +25,7 @@ def test_load_config_applies_defaults(tmp_path: Path):
     assert config.max_steps == 10
     assert config.command_timeout_seconds == 60
     assert config.max_file_bytes == 200_000
+    assert config.redaction_secret_env_vars == ["DEEPSEEK_API_KEY"]
     assert config.allowed_paths == [workspace.resolve()]
 
 
@@ -75,3 +76,22 @@ def test_resolve_workspace_returns_resolved_path(tmp_path: Path):
     workspace.mkdir()
 
     assert resolve_workspace(workspace) == workspace.resolve()
+
+
+def test_load_config_keeps_redaction_secret_env_var_names_not_values(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    workspace = tmp_path / "project"
+    workspace.mkdir()
+    monkeypatch.setenv("SAFELOOP_RUNTIME_SECRET", "real-secret-value")
+    config_path = tmp_path / "safeloop.yml"
+    config_path.write_text(
+        f"workspace: {workspace}\n"
+        "test_command: python -m pytest\n"
+        "redaction_secret_env_vars:\n"
+        "  - SAFELOOP_RUNTIME_SECRET\n",
+        encoding="utf-8",
+    )
+
+    config = load_config(config_path)
+
+    assert config.redaction_secret_env_vars == ["SAFELOOP_RUNTIME_SECRET"]
+    assert "real-secret-value" not in config.model_dump_json()

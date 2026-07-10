@@ -533,6 +533,8 @@ Review fix commit: `b303d1f` (`fix(task-3): isolate event log copies`), complete
 
 Review fix commit: `88f4537` (`fix(task-3): strengthen event redaction traceability`), completed by subagent Zeno after reviewer findings required configured known-secret redaction, stronger key/content heuristics, UUID-shape coverage, and explicit Task 3 traceability notes.
 
+Review fix commit: `fix(task-3): wire runtime redaction secrets` (hash pending at commit time), completed to add config-owned secret env var names, deterministic runtime secret collection, and default `RunManager()` wiring so Task 3 events redact configured runtime secret values without storing secrets in config.
+
 Update `PLAN.md` Task 3 with the commit hash and append an `AGENT_LOG.md` entry.
 
 ---

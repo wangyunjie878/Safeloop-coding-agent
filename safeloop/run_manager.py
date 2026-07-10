@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from uuid import uuid4
 
-from .config import HarnessConfig
+from .config import HarnessConfig, collect_runtime_redaction_secrets
 from .events import EventLogStore
 from .models import Event, RunRecord
 
@@ -22,6 +22,7 @@ class RunManager:
         return self._event_store
 
     def create_run(self, task: str, config: HarnessConfig) -> RunRecord:
+        self._event_store.add_known_secrets(collect_runtime_redaction_secrets(config))
         run = RunRecord(
             id=str(uuid4()),
             task=task,

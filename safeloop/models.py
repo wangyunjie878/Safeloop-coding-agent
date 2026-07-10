@@ -30,6 +30,7 @@ class HarnessConfig(_SafeLoopBaseModel):
     max_steps: int = 10
     command_timeout_seconds: int = 60
     max_file_bytes: int = 200_000
+    redaction_secret_env_vars: list[str] = Field(default_factory=lambda: ["DEEPSEEK_API_KEY"])
 
     @field_validator("workspace", mode="before")
     @classmethod
