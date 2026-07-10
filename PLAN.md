@@ -260,7 +260,7 @@ git commit -m "chore(task-1): bootstrap safeloop package"
 
 Implementation commit: `db94d5c` (`test(task-1): cover placeholder cli commands`).
 
-Updated `AGENT_LOG.md` with the Task 1 entry for the bootstrap subagent.
+Updated `AGENT_LOG.md` with the Task 1 entry for implementation subagent `Mendel` and reviewer/fix loop.
 
 ---
 
