@@ -131,4 +131,4 @@ Observed result:
 
 ### Review-Fix Commit
 
-Pending until the review-fix commit is created.
+`4e0af51` (`fix(task-14): harden credentials and deepseek errors`).

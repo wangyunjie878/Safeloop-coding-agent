@@ -1930,7 +1930,7 @@ Implementation commit: `68b0c96` (`feat(task-14): add credential manager and dee
 
 Hash traceability note: the real implementation hash was recorded in a follow-up process commit because a commit cannot embed its own final hash without changing that hash.
 
-Review-fix commit: pending.
+Review-fix commit: `4e0af51` (`fix(task-14): harden credentials and deepseek errors`).
 
 ---
 
