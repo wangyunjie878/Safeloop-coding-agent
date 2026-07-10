@@ -527,9 +527,9 @@ git add safeloop/events.py safeloop/run_manager.py safeloop/security/redaction.p
 git commit -m "feat(task-3): add event log and run manager"
 ```
 
-Implementation commit: `8ef8c28` (`feat(task-3): add event log and run manager`).
+Implementation commit: `8ef8c28` (`feat(task-3): add event log and run manager`), completed by subagent Dalton.
 
-Review fix commit: `b303d1f` (`fix(task-3): isolate event log copies`).
+Review fix commit: `b303d1f` (`fix(task-3): isolate event log copies`), completed by subagent Rawls after reviewer Feynman flagged mutable event-history exposure.
 
 Update `PLAN.md` Task 3 with the commit hash and append an `AGENT_LOG.md` entry.
 
