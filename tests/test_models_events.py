@@ -1,13 +1,20 @@
+from pathlib import Path
+
+import pytest
+
+from safeloop.config import HarnessConfig
+from safeloop.events import EventLogStore
 from safeloop.models import (
     AgentAction,
     Event,
     Feedback,
     GuardrailDecision,
-    HarnessConfig,
     MemoryEntry,
     RunRecord,
     ToolResult,
 )
+from safeloop.run_manager import RunManager, RunNotFoundError
+from safeloop.security.redaction import redact_secrets
 
 
 def test_run_record_matches_documented_contract():
@@ -162,3 +169,68 @@ def test_run_record_workspace_is_resolved_to_an_absolute_path():
     run = RunRecord(id="run-1", task="verify", workspace="relative-project", status="created")
 
     assert run.workspace.is_absolute()
+
+
+def test_redaction_removes_known_secret_and_nested_values():
+    payload = {
+        "message": "token sk-secret appears",
+        "nested": {"key": "sk-secret", "items": ["safe", "sk-secret"]},
+    }
+
+    redacted = redact_secrets(payload, known_secrets=["sk-secret"])
+
+    assert payload["nested"]["key"] == "sk-secret"
+    assert "sk-secret" not in str(redacted)
+    assert "[REDACTED]" in str(redacted)
+
+
+def test_redaction_hides_obvious_secret_like_strings_without_mutating_input():
+    payload = {"token": "sk-live-1234567890", "keep": "public"}
+
+    redacted = redact_secrets(payload)
+
+    assert payload["token"] == "sk-live-1234567890"
+    assert redacted["token"] == "[REDACTED]"
+    assert redacted["keep"] == "public"
+
+
+def test_run_manager_creates_run_and_state_event(tmp_path: Path):
+    config = HarnessConfig(workspace=tmp_path, test_command="python -m pytest", max_steps=3)
+    store = EventLogStore()
+    manager = RunManager(event_store=store)
+
+    run = manager.create_run("fix failing test", config)
+    manager.update_status(run.id, "running", reason="agent started")
+
+    events = store.list(run.id)
+
+    assert run.status == "created"
+    assert run.workspace == tmp_path.resolve()
+    assert run.max_steps == 3
+    assert manager.get_run(run.id).status == "running"
+    assert [event.type for event in events] == ["run_created", "state_changed"]
+    assert events[0].run_id == run.id
+    assert events[0].payload["task"] == "fix failing test"
+
+
+def test_event_log_store_redacts_payload_before_persisting():
+    store = EventLogStore()
+    event = Event(
+        run_id="run-1",
+        step=1,
+        type="state_changed",
+        payload={"token": "sk-live-1234567890", "nested": {"secret": "sk-live-1234567890"}},
+    )
+
+    stored = store.append(event)
+
+    assert event.payload["token"] == "sk-live-1234567890"
+    assert stored.payload["token"] == "[REDACTED]"
+    assert stored.payload["nested"]["secret"] == "[REDACTED]"
+
+
+def test_run_manager_missing_run_raises():
+    manager = RunManager(event_store=EventLogStore())
+
+    with pytest.raises(RunNotFoundError, match="missing"):
+        manager.get_run("missing")
