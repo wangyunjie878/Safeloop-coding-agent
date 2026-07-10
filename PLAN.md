@@ -549,6 +549,8 @@ Update `PLAN.md` Task 3 with the commit hash and append an `AGENT_LOG.md` entry.
 
 ### Task 4: LLM Abstraction and Action Parser
 
+**Status:** DONE in commit `feat(task-4): add llm abstraction and action parser`; final short SHA recorded in `.superpowers/sdd/task-4-report.md` after commit creation.
+
 **Goal:** 将真实 LLM 的不确定性隔离在可替换接口后面，并把模型输出解析成可验证的结构化动作。
 
 **Files:**
@@ -573,7 +575,7 @@ Update `PLAN.md` Task 3 with the commit hash and append an `AGENT_LOG.md` entry.
 - `parse_action()` 只接受 JSON object，必须包含 `tool_name`, `arguments`, `reason`, `expected_outcome`。
 - 未知工具、非法 JSON、缺失字段都抛出 `ActionParseError`。
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # tests/test_llm_actions.py
@@ -619,29 +621,29 @@ def test_parse_action_rejects_invalid_json():
         parse_action("not json", allowed_tools={"read_file"})
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_llm_actions.py -v`
 
 Expected: FAIL with missing `safeloop.actions` or parser symbols.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Create the LLM protocol, request model, mock client, and parser. Do not call DeepSeek in this task.
 
-- [ ] **Step 4: Run focused tests**
+- [x] **Step 4: Run focused tests**
 
 Run: `python -m pytest tests/test_llm_actions.py -v`
 
 Expected: PASS.
 
-- [ ] **Step 5: Run full tests**
+- [x] **Step 5: Run full tests**
 
-Run: `make test`
+Run: `python -m pytest -v`
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit and log**
+- [x] **Step 6: Commit and log**
 
 ```bash
 git add safeloop/llm safeloop/actions.py safeloop/models.py tests/test_llm_actions.py PLAN.md AGENT_LOG.md
