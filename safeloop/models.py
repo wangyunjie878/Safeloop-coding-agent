@@ -38,12 +38,14 @@ class HarnessConfig(_SafeLoopBaseModel):
 
 
 class RunRecord(_SafeLoopBaseModel):
-    run_id: str
+    id: str
     task: str
-    status: Literal["created", "running", "finished", "failed", "cancelled"]
-    workspace: Path | None = None
-    config_path: Path | None = None
+    workspace: Path
+    status: Literal["created", "running", "waiting_approval", "finished", "stopped", "failed"] = "created"
+    current_step: int = 0
+    max_steps: int = 10
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    finished_at: datetime | None = None
 
 
 class AgentAction(_SafeLoopBaseModel):
@@ -56,34 +58,48 @@ class AgentAction(_SafeLoopBaseModel):
 class ToolResult(_SafeLoopBaseModel):
     tool_name: str
     success: bool
-    exit_code: int
-    stdout: str
-    stderr: str
-    summary: str
-    duration_ms: int
-
-
-class GuardrailDecision(_SafeLoopBaseModel):
-    decision: Literal["allow", "deny", "escalate"]
-    risk_level: Literal["low", "medium", "high", "critical"]
-    reason: str
-    matched_rule: str | None = None
-
-
-class Feedback(_SafeLoopBaseModel):
-    source: Literal["user", "guardrail", "system", "tool"]
-    message: str
+    exit_code: int | None = None
+    stdout: str = ""
+    stderr: str = ""
+    summary: str = ""
+    duration_ms: int = 0
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
+class GuardrailDecision(_SafeLoopBaseModel):
+    decision: Literal["allow", "deny", "require_approval"]
+    risk_level: Literal["low", "medium", "high", "critical"]
+    reason: str
+    matched_rule: str = ""
+
+
+class Feedback(_SafeLoopBaseModel):
+    kind: Literal[
+        "test_failure",
+        "syntax_error",
+        "timeout",
+        "guardrail_blocked",
+        "tool_error",
+        "parse_error",
+        "generic_failure",
+    ]
+    summary: str
+    raw_excerpt: str = ""
+    suggested_next_context: str = ""
+
+
 class MemoryEntry(_SafeLoopBaseModel):
-    key: str
-    value: str
-    namespace: str = "default"
+    id: str
+    scope: Literal["project", "run", "user"]
+    tags: list[str] = Field(default_factory=list)
+    content: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    source_run_id: str | None = None
 
 
 class Event(_SafeLoopBaseModel):
-    type: str
     run_id: str
+    step: int
+    type: str
     payload: dict[str, Any] = Field(default_factory=dict)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

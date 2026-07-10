@@ -14,7 +14,20 @@ class ConfigError(ValueError):
 
 
 def resolve_workspace(path: Path | str) -> Path:
-    return Path(path).expanduser().resolve()
+    try:
+        return Path(path).expanduser().resolve()
+    except (TypeError, ValueError, OSError) as exc:
+        raise ConfigError(f"workspace: invalid path value {path!r}") from exc
+
+
+def _resolve_path_value(value: Any, workspace: Path, field_name: str) -> Path:
+    try:
+        candidate = Path(value).expanduser()
+        if not candidate.is_absolute():
+            candidate = workspace / candidate
+        return candidate.resolve()
+    except (TypeError, ValueError, OSError) as exc:
+        raise ConfigError(f"{field_name}: invalid path value {value!r}") from exc
 
 
 def _resolve_path_list(values: Any, workspace: Path, field_name: str) -> list[Path]:
@@ -25,10 +38,7 @@ def _resolve_path_list(values: Any, workspace: Path, field_name: str) -> list[Pa
 
     resolved: list[Path] = []
     for value in values:
-        candidate = Path(value).expanduser()
-        if not candidate.is_absolute():
-            candidate = workspace / candidate
-        resolved.append(candidate.resolve())
+        resolved.append(_resolve_path_value(value, workspace, field_name))
     return resolved
 
 

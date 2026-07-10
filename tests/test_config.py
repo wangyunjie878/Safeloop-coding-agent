@@ -40,6 +40,36 @@ def test_load_config_rejects_missing_workspace(tmp_path: Path):
         load_config(config_path)
 
 
+def test_load_config_wraps_list_workspace_in_config_error(tmp_path: Path):
+    config_path = tmp_path / "safeloop.yml"
+    config_path.write_text(
+        "workspace:\n"
+        "  - bad\n"
+        "test_command: python -m pytest\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ConfigError, match="workspace"):
+        load_config(config_path)
+
+
+def test_load_config_wraps_invalid_path_list_values_in_config_error(tmp_path: Path):
+    workspace = tmp_path / "project"
+    workspace.mkdir()
+    config_path = tmp_path / "safeloop.yml"
+    config_path.write_text(
+        f"workspace: {workspace}\n"
+        "test_command: python -m pytest\n"
+        "allowed_paths:\n"
+        "  -\n"
+        "    - bad\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ConfigError, match="allowed_paths"):
+        load_config(config_path)
+
+
 def test_resolve_workspace_returns_resolved_path(tmp_path: Path):
     workspace = tmp_path / "project"
     workspace.mkdir()
