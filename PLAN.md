@@ -8,6 +8,21 @@
 
 **Tech Stack:** Python 3.11+、FastAPI、pytest、Pydantic、PyYAML、httpx、keyring、python-dotenv、Docker、GitHub Actions、GitLab CI 兼容配置。
 
+## MVP Scope and Execution Mode
+
+本计划按课程 MVP 执行。SafeLoop 第一版不是完整 Codex / Claude Code 复刻，而是一个小型本地 coding agent harness，必须证明以下闭环即可：
+
+1. 读取允许范围内的代码文件。
+2. 写入或 patch 局部代码文件。
+3. 执行受控命令并运行配置好的测试。
+4. 将测试失败、命令失败或护栏拦截转成结构化反馈。
+5. 用 mock LLM 在下一轮改变动作，并最终显式 `finish`。
+6. 用 DeepSeek client 作为可选真实 provider，但 CI 和核心测试不依赖真实网络或真实 key。
+
+明确不做：大型代码索引、语言专用 AST 分析、复杂交互式终端、无限多轮自动修复、完整 IDE 集成、云端多租户服务、自动安装任意目标项目依赖。WebUI、记忆和凭据模块都保持最小可用，只服务于机制展示、过程证据和课程验收。
+
+下面的 16 个 task 是细粒度 TDD 与过程记录单元，不代表要做 16 个大型功能。实际 GitHub 工作流压缩为 4 个模块 PR；每个 PR 可以包含多个小 task 的 commit，但仍需在 `PLAN.md` 和 `AGENT_LOG.md` 记录每个 task 的 subagent、测试和 commit hash。
+
 ## Global Constraints
 
 - 在 `SPEC.md`、`PLAN.md` 完成并经过冷启动验证前，不得编写实现代码。
@@ -146,19 +161,15 @@ Task 15
 ### Worktree and PR Plan
 
 - PR 1 / worktree `feature/bootstrap-config`: Task 1、Task 2、Task 3。
-- PR 2 / worktree `feature/llm-guardrails`: Task 4、Task 5、Task 14 中 DeepSeek client 的非网络测试。
-- PR 3 / worktree `feature/tools-dispatcher`: Task 6、Task 7、Task 8。
-- PR 4 / worktree `feature/feedback-memory-loop`: Task 9、Task 10、Task 11。
-- PR 5 / worktree `feature/cli-web-demo`: Task 12、Task 13。
-- PR 6 / worktree `feature/distribution-docs`: Task 15、Task 16。
+- PR 2 / worktree `feature/llm-guardrails`: Task 4、Task 5、Task 14 中 DeepSeek client 的非网络测试。目标是建立结构化 LLM action、解析错误、护栏和凭据边界。
+- PR 3 / worktree `feature/tools-loop-demo`: Task 6、Task 7、Task 8、Task 9、Task 10、Task 11、Task 12。目标是完成 MVP 核心闭环：文件工具、命令/测试工具、dispatcher、反馈分类、最小记忆、状态机和 CLI/demo。
+- PR 4 / worktree `feature/web-distribution-docs`: Task 13、Task 15、Task 16。目标是最小 FastAPI WebUI、Docker/GitHub Actions/README 和最终过程证据。
 
 ### Parallelizable Tasks
 
-- Task 5 Guardrails、Task 6 File Tools、Task 7 Command Tools 可在 Task 2 后并行。
-- Task 9 Feedback 可在 Task 7 后独立推进。
-- Task 10 Memory 可在 Task 2 后独立推进。
-- Task 13 WebUI 可在 Task 11 的接口稳定后与 Task 12 CLI 并行。
-- Task 15 Distribution 可在 Task 12 和 Task 13 基本可运行后开始。
+- PR 2 与 PR 3 不能同时修改同一批核心模型；先完成 PR 2 的 action/guardrail 接口，再进入 PR 3。
+- PR 3 内部可按小 task 串行推进，保持每个 task 一个新鲜 subagent 和一次 review。
+- PR 4 可在 PR 3 的 CLI/demo 接口稳定后开始；WebUI 只封装已有 MVP loop，不新增复杂功能。
 
 ---
 
