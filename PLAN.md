@@ -1926,9 +1926,9 @@ git add safeloop/credentials.py safeloop/llm/deepseek.py safeloop/cli.py tests/t
 git commit -m "feat(task-14): add credential manager and deepseek client"
 ```
 
-Implementation commit: `PENDING_FINAL_HASH` (`feat(task-14): add credential manager and deepseek client`).
+Implementation commit: `68b0c96` (`feat(task-14): add credential manager and deepseek client`).
 
-Note: this task record uses a placeholder because a commit cannot embed its own final hash without a follow-up commit or amend loop that changes the hash again.
+Hash traceability note: the real implementation hash was recorded in a follow-up process commit because a commit cannot embed its own final hash without changing that hash.
 
 ---
 

@@ -2,7 +2,7 @@
 
 ## Status
 
-DONE_WITH_CONCERNS. Commit `PENDING_FINAL_HASH` (`feat(task-14): add credential manager and deepseek client`).
+DONE. Commit `68b0c96` (`feat(task-14): add credential manager and deepseek client`).
 
 ## RED Evidence
 
@@ -82,6 +82,6 @@ Matches were limited to dummy placeholders and existing test/redaction fixtures 
 - `credentials status` prints only the status word and never key material.
 - `set_key()` and `clear_key()` are intentionally limited to the `keyring` backend.
 
-## Concern
+## Hash Traceability
 
-`PLAN.md`, `AGENT_LOG.md`, and this report use `PENDING_FINAL_HASH` because the final hash of a feature commit cannot be written into files inside that same exact commit without a follow-up commit or amend cycle that changes the hash again.
+The implementation commit was recorded in a follow-up process commit because the final hash of a feature commit cannot be written into files inside that same exact commit.
