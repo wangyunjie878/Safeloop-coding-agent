@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from pathlib import Path
+import re
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -36,6 +37,15 @@ class HarnessConfig(_SafeLoopBaseModel):
     @classmethod
     def _resolve_workspace(cls, value: Path | str) -> Path:
         return _resolved_path(value)
+
+    @field_validator("redaction_secret_env_vars")
+    @classmethod
+    def _validate_redaction_secret_env_vars(cls, values: list[str]) -> list[str]:
+        env_var_pattern = re.compile(r"^[A-Z_][A-Z0-9_]*$")
+        for value in values:
+            if not env_var_pattern.fullmatch(value):
+                raise ValueError("redaction_secret_env_vars entries must be environment variable names")
+        return values
 
 
 class RunRecord(_SafeLoopBaseModel):

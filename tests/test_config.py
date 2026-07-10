@@ -161,3 +161,35 @@ def test_load_config_keeps_redaction_secret_env_var_names_not_values(tmp_path: P
 
     assert config.redaction_secret_env_vars == ["SAFELOOP_RUNTIME_SECRET"]
     assert "real-secret-value" not in config.model_dump_json()
+
+
+def test_load_config_rejects_secret_like_redaction_env_var_names(tmp_path: Path):
+    workspace = tmp_path / "project"
+    workspace.mkdir()
+    config_path = tmp_path / "safeloop.yml"
+    config_path.write_text(
+        f"workspace: {workspace}\n"
+        "test_command: python -m pytest\n"
+        "redaction_secret_env_vars:\n"
+        "  - sk-live-1234567890\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ConfigError, match="redaction_secret_env_vars"):
+        load_config(config_path)
+
+
+def test_load_config_rejects_malformed_redaction_env_var_names(tmp_path: Path):
+    workspace = tmp_path / "project"
+    workspace.mkdir()
+    config_path = tmp_path / "safeloop.yml"
+    config_path.write_text(
+        f"workspace: {workspace}\n"
+        "test_command: python -m pytest\n"
+        "redaction_secret_env_vars:\n"
+        "  - api-key\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ConfigError, match="redaction_secret_env_vars"):
+        load_config(config_path)

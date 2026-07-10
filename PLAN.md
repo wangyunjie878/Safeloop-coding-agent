@@ -421,6 +421,8 @@ Review fix commit: `e3b1377` (`fix(task-2): resolve run workspace paths`).
 
 PR1 review fix commit: `fbca894` (`fix(pr1): tighten config workspace boundaries`) rejects `allowed_paths`/`blocked_paths` that escape `workspace`, rejects file-backed `workspace` values, and preserves the explicit review trail in `AGENT_LOG.md`.
 
+PR1 review follow-up pending commit: `fix(pr1): validate redaction env var names` to ensure `redaction_secret_env_vars` stores environment variable names only, not secret-like or malformed values.
+
 ---
 
 ### Task 3: Event Log Store and Run Manager
@@ -538,6 +540,8 @@ Review fix commit: `88f4537` (`fix(task-3): strengthen event redaction traceabil
 Review fix commit: `f5aad67` (`fix(task-3): wire runtime redaction secrets`), completed by subagent Fermat to add config-owned secret env var names, deterministic runtime secret collection, and default `RunManager()` wiring so Task 3 events redact configured runtime secret values without storing secrets in config.
 
 PR1 review fix commit: `fbca894` (`fix(pr1): tighten config workspace boundaries`) also closes the branch-level Minor by making dotenv-style secret-line redaction case-insensitive for lowercase assignments such as `api_key=...`.
+
+PR1 review follow-up pending commit: `fix(pr1): validate redaction env var names` keeps runtime redaction configuration name-only by rejecting secret-like values in `redaction_secret_env_vars`.
 
 Update `PLAN.md` Task 3 with the commit hash and append an `AGENT_LOG.md` entry.
 
