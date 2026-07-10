@@ -450,7 +450,7 @@ Review fix commit: `e3b1377` (`fix(task-2): resolve run workspace paths`).
 - `update_status()` 写入 `state_changed` 事件。
 - 缺失 run 抛出 `RunNotFoundError`。
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # tests/test_models_events.py
@@ -498,34 +498,36 @@ def test_run_manager_missing_run_raises():
         manager.get_run("missing")
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_models_events.py -v`
 
 Expected: FAIL with import errors for `EventLogStore`, `RunManager`, or `redact_secrets`.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Implement in-memory event and run stores. Ensure all event payloads pass through `redact_secrets()`.
 
-- [ ] **Step 4: Run focused tests**
+- [x] **Step 4: Run focused tests**
 
 Run: `python -m pytest tests/test_models_events.py -v`
 
 Expected: PASS.
 
-- [ ] **Step 5: Run full tests**
+- [x] **Step 5: Run full tests**
 
 Run: `make test`
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit and log**
+- [x] **Step 6: Commit and log**
 
 ```bash
 git add safeloop/events.py safeloop/run_manager.py safeloop/security/redaction.py safeloop/models.py tests/test_models_events.py PLAN.md AGENT_LOG.md
 git commit -m "feat(task-3): add event log and run manager"
 ```
+
+Implementation commit: `8ef8c28` (`feat(task-3): add event log and run manager`).
 
 Update `PLAN.md` Task 3 with the commit hash and append an `AGENT_LOG.md` entry.
 
