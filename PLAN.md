@@ -531,6 +531,8 @@ Implementation commit: `8ef8c28` (`feat(task-3): add event log and run manager`)
 
 Review fix commit: `b303d1f` (`fix(task-3): isolate event log copies`), completed by subagent Rawls after reviewer Feynman flagged mutable event-history exposure.
 
+Review fix commit: `fix(task-3): strengthen event redaction traceability`, completed by the current fix subagent after reviewer findings required configured known-secret redaction, stronger key/content heuristics, UUID-shape coverage, and explicit Task 3 traceability notes.
+
 Update `PLAN.md` Task 3 with the commit hash and append an `AGENT_LOG.md` entry.
 
 ---

@@ -1,4 +1,5 @@
 from pathlib import Path
+from uuid import UUID
 
 import pytest
 
@@ -194,6 +195,24 @@ def test_redaction_hides_obvious_secret_like_strings_without_mutating_input():
     assert redacted["keep"] == "public"
 
 
+def test_redaction_hides_secret_bearing_keys_and_multiline_secret_content_without_mutating_input():
+    payload = {
+        "api_key": "plain-text-secret",
+        "notes": "visible",
+        "dotenv_blob": "DEBUG=true\nAPI_KEY=plain-text-secret\nNAME=safeloop",
+        "private_key": "-----BEGIN PRIVATE KEY-----\nabc123\n-----END PRIVATE KEY-----",
+    }
+
+    redacted = redact_secrets(payload)
+
+    assert payload["api_key"] == "plain-text-secret"
+    assert payload["dotenv_blob"].splitlines()[1] == "API_KEY=plain-text-secret"
+    assert redacted["api_key"] == "[REDACTED]"
+    assert redacted["notes"] == "visible"
+    assert redacted["dotenv_blob"] == "[REDACTED]"
+    assert redacted["private_key"] == "[REDACTED]"
+
+
 def test_run_manager_creates_run_and_state_event(tmp_path: Path):
     config = HarnessConfig(workspace=tmp_path, test_command="python -m pytest", max_steps=3)
     store = EventLogStore()
@@ -207,6 +226,7 @@ def test_run_manager_creates_run_and_state_event(tmp_path: Path):
     assert run.status == "created"
     assert run.workspace == tmp_path.resolve()
     assert run.max_steps == 3
+    assert str(UUID(run.id)) == run.id
     assert manager.get_run(run.id).status == "running"
     assert [event.type for event in events] == ["run_created", "state_changed"]
     assert events[0].run_id == run.id
@@ -226,6 +246,22 @@ def test_event_log_store_redacts_payload_before_persisting():
 
     assert event.payload["token"] == "sk-live-1234567890"
     assert stored.payload["token"] == "[REDACTED]"
+    assert stored.payload["nested"]["secret"] == "[REDACTED]"
+
+
+def test_event_log_store_redacts_configured_known_secrets_before_persisting():
+    store = EventLogStore(known_secrets=["db-password-123"])
+    event = Event(
+        run_id="run-1",
+        step=1,
+        type="state_changed",
+        payload={"message": "db-password-123", "nested": {"secret": "db-password-123"}},
+    )
+
+    stored = store.append(event)
+
+    assert event.payload["message"] == "db-password-123"
+    assert stored.payload["message"] == "[REDACTED]"
     assert stored.payload["nested"]["secret"] == "[REDACTED]"
 
 
