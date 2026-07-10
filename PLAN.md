@@ -296,7 +296,7 @@ Updated `AGENT_LOG.md` with the Task 1 entry for implementation subagent `Mendel
 - `load_config()` 读取 YAML，校验 workspace 存在，路径相对 workspace 解析。
 - 配置错误抛出 `ConfigError`，错误信息包含字段名。
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # tests/test_config.py
@@ -384,34 +384,36 @@ def test_guardrail_decision_uses_known_values():
     assert decision.decision == "deny"
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_config.py tests/test_models_events.py -v`
 
 Expected: FAIL with import errors for `safeloop.config` or missing model classes.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Create Pydantic models and config loader matching the interfaces. Do not add LLM, tool, or state machine logic in this task.
 
-- [ ] **Step 4: Run focused tests**
+- [x] **Step 4: Run focused tests**
 
 Run: `python -m pytest tests/test_config.py tests/test_models_events.py -v`
 
 Expected: PASS.
 
-- [ ] **Step 5: Run full tests**
+- [x] **Step 5: Run full tests**
 
 Run: `make test`
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit and log**
+- [x] **Step 6: Commit and log**
 
 ```bash
 git add safeloop/models.py safeloop/config.py tests/test_config.py tests/test_models_events.py pyproject.toml PLAN.md AGENT_LOG.md
 git commit -m "feat(task-2): add core models and config loader"
 ```
+
+Implementation commit: `829795f` (`feat(task-2): add core models and config loader`).
 
 Update `PLAN.md` Task 2 with the commit hash and append an `AGENT_LOG.md` entry.
 
