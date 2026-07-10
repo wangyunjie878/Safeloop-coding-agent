@@ -549,7 +549,7 @@ Update `PLAN.md` Task 3 with the commit hash and append an `AGENT_LOG.md` entry.
 
 ### Task 4: LLM Abstraction and Action Parser
 
-**Status:** DONE in commit `feat(task-4): add llm abstraction and action parser`; final short SHA recorded in `.superpowers/sdd/task-4-report.md` after commit creation.
+**Status:** DONE in commit `c107cae` (`feat(task-4): add llm abstraction and action parser`) by implementer subagent Turing.
 
 **Goal:** 将真实 LLM 的不确定性隔离在可替换接口后面，并把模型输出解析成可验证的结构化动作。
 
