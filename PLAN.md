@@ -160,6 +160,8 @@ Task 15
 
 ### Worktree and PR Plan
 
+说明：下列 “PR 1/2/3/4” 是实现模块顺序，不等同于 GitHub 自动生成的 pull request 编号；文档范围调整类 PR 不计入实现模块编号。
+
 - PR 1 / worktree `feature/bootstrap-config`: Task 1、Task 2、Task 3。
 - PR 2 / worktree `feature/llm-guardrails`: Task 4、Task 5、Task 14 中 DeepSeek client 的非网络测试。目标是建立结构化 LLM action、解析错误、护栏和凭据边界。
 - PR 3 / worktree `feature/tools-loop-demo`: Task 6、Task 7、Task 8、Task 9、Task 10、Task 11、Task 12。目标是完成 MVP 核心闭环：文件工具、命令/测试工具、dispatcher、反馈分类、最小记忆、状态机和 CLI/demo。
