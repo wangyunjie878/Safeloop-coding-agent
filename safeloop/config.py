@@ -31,6 +31,14 @@ def _resolve_path_value(value: Any, workspace: Path, field_name: str) -> Path:
         raise ConfigError(f"{field_name}: invalid path value {value!r}") from exc
 
 
+def _ensure_within_workspace(path: Path, workspace: Path, field_name: str) -> Path:
+    try:
+        path.relative_to(workspace)
+    except ValueError as exc:
+        raise ConfigError(f"{field_name}: path must stay within workspace: {path}") from exc
+    return path
+
+
 def _resolve_path_list(values: Any, workspace: Path, field_name: str) -> list[Path]:
     if values is None:
         return []
@@ -39,7 +47,8 @@ def _resolve_path_list(values: Any, workspace: Path, field_name: str) -> list[Pa
 
     resolved: list[Path] = []
     for value in values:
-        resolved.append(_resolve_path_value(value, workspace, field_name))
+        resolved_path = _resolve_path_value(value, workspace, field_name)
+        resolved.append(_ensure_within_workspace(resolved_path, workspace, field_name))
     return resolved
 
 
@@ -50,6 +59,8 @@ def _normalize_config(data: dict[str, Any], source: Path) -> dict[str, Any]:
     workspace = resolve_workspace(data["workspace"])
     if not workspace.exists():
         raise ConfigError(f"workspace does not exist: {workspace}")
+    if not workspace.is_dir():
+        raise ConfigError(f"workspace must be an existing directory: {workspace}")
 
     normalized = dict(data)
     normalized["workspace"] = workspace

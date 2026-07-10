@@ -213,6 +213,15 @@ def test_redaction_hides_secret_bearing_keys_and_multiline_secret_content_withou
     assert redacted["private_key"] == "[REDACTED]"
 
 
+def test_redaction_hides_lowercase_dotenv_secret_assignment_without_mutating_input():
+    payload = {"dotenv_blob": "debug=true\napi_key=plain-text-secret\nname=safeloop"}
+
+    redacted = redact_secrets(payload)
+
+    assert payload["dotenv_blob"].splitlines()[1] == "api_key=plain-text-secret"
+    assert redacted["dotenv_blob"] == "[REDACTED]"
+
+
 def test_run_manager_creates_run_and_state_event(tmp_path: Path):
     config = HarnessConfig(workspace=tmp_path, test_command="python -m pytest", max_steps=3)
     store = EventLogStore()

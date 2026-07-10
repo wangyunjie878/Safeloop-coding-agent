@@ -419,6 +419,8 @@ Update `PLAN.md` Task 2 with the commit hash and append an `AGENT_LOG.md` entry.
 
 Review fix commit: `e3b1377` (`fix(task-2): resolve run workspace paths`).
 
+PR1 review fix pending commit: `fix(pr1): tighten config workspace boundaries` to reject `allowed_paths`/`blocked_paths` that escape `workspace`, reject file-backed `workspace` values, and preserve the explicit review trail in `AGENT_LOG.md`.
+
 ---
 
 ### Task 3: Event Log Store and Run Manager
@@ -534,6 +536,8 @@ Review fix commit: `b303d1f` (`fix(task-3): isolate event log copies`), complete
 Review fix commit: `88f4537` (`fix(task-3): strengthen event redaction traceability`), completed by subagent Zeno after reviewer findings required configured known-secret redaction, stronger key/content heuristics, UUID-shape coverage, and explicit Task 3 traceability notes.
 
 Review fix commit: `f5aad67` (`fix(task-3): wire runtime redaction secrets`), completed by subagent Fermat to add config-owned secret env var names, deterministic runtime secret collection, and default `RunManager()` wiring so Task 3 events redact configured runtime secret values without storing secrets in config.
+
+PR1 review fix pending commit: `fix(pr1): tighten config workspace boundaries` also closes the branch-level Minor by making dotenv-style secret-line redaction case-insensitive for lowercase assignments such as `api_key=...`.
 
 Update `PLAN.md` Task 3 with the commit hash and append an `AGENT_LOG.md` entry.
 
