@@ -34,7 +34,7 @@ Red test evidence: `python -m pytest tests/test_models_events.py -v` failed in t
 
 Green/final test evidence: `python -m pytest tests/test_models_events.py -v` passed 19/19, and `python -m pytest -v` passed 30/30.
 
-Commit hash: recorded in git history under `fix(task-3): strengthen event redaction traceability`
+Commit hash: `88f4537`
 
 Files changed: `safeloop/events.py`, `safeloop/security/redaction.py`, `tests/test_models_events.py`, `AGENT_LOG.md`, `PLAN.md`, `.superpowers/sdd/task-3-report.md`
 
