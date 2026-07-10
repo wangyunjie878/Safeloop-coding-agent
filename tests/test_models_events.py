@@ -156,3 +156,9 @@ def test_other_core_models_exist():
     assert feedback.kind == "generic_failure"
     assert memory.tags == ["lesson"]
     assert config.max_steps == 10
+
+
+def test_run_record_workspace_is_resolved_to_an_absolute_path():
+    run = RunRecord(id="run-1", task="verify", workspace="relative-project", status="created")
+
+    assert run.workspace.is_absolute()

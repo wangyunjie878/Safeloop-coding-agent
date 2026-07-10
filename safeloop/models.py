@@ -47,6 +47,11 @@ class RunRecord(_SafeLoopBaseModel):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     finished_at: datetime | None = None
 
+    @field_validator("workspace", mode="before")
+    @classmethod
+    def _resolve_workspace(cls, value: Path | str) -> Path:
+        return _resolved_path(value)
+
 
 class AgentAction(_SafeLoopBaseModel):
     tool_name: str
