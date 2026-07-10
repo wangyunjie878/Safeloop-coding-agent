@@ -413,7 +413,7 @@ git add safeloop/models.py safeloop/config.py tests/test_config.py tests/test_mo
 git commit -m "feat(task-2): add core models and config loader"
 ```
 
-Implementation commit: `ad6858e` (`fix(task-2): align models and config contract`).
+Implementation commit: `2699c02` (`fix(task-2): remove toolresult metadata`).
 
 Update `PLAN.md` Task 2 with the commit hash and append an `AGENT_LOG.md` entry.
 
