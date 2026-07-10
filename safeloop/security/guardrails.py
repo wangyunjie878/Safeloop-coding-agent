@@ -111,6 +111,22 @@ class GuardrailEngine:
             return self._evaluate_path_action(action)
         if action.tool_name in {"run_command", "run_tests"}:
             return self._evaluate_command_action(action)
+        return self._evaluate_relevant_arguments(action)
+
+    def _evaluate_relevant_arguments(self, action: AgentAction) -> GuardrailDecision:
+        decisions: list[GuardrailDecision] = []
+
+        if action.arguments.get("path") is not None:
+            decisions.append(self._evaluate_path_action(action))
+
+        if action.arguments.get("command") is not None:
+            decisions.append(self._evaluate_command_action(action))
+
+        for decision_name in ("deny", "require_approval"):
+            for decision in decisions:
+                if decision.decision == decision_name:
+                    return decision
+
         return GuardrailDecision(
             decision="allow",
             risk_level="low",

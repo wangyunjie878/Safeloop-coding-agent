@@ -104,3 +104,33 @@ def test_guardrail_allows_safe_read_inside_workspace(tmp_path: Path):
 
     assert decision.decision == "allow"
     assert decision.risk_level == "low"
+
+
+def test_guardrail_denies_unknown_action_with_sensitive_path(tmp_path: Path):
+    engine = GuardrailEngine(make_config(tmp_path))
+    action = AgentAction(
+        tool_name="inspect_environment",
+        arguments={"path": ".env"},
+        reason="check config",
+        expected_outcome="content",
+    )
+
+    decision = engine.evaluate(action)
+
+    assert decision.decision == "deny"
+    assert decision.risk_level in {"high", "critical"}
+
+
+def test_guardrail_requires_approval_for_unknown_action_command(tmp_path: Path):
+    engine = GuardrailEngine(make_config(tmp_path))
+    action = AgentAction(
+        tool_name="inspect_environment",
+        arguments={"command": "pip install requests"},
+        reason="install dependency",
+        expected_outcome="installed",
+    )
+
+    decision = engine.evaluate(action)
+
+    assert decision.decision == "require_approval"
+    assert decision.risk_level == "medium"
