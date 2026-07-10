@@ -678,7 +678,7 @@ Update `PLAN.md` Task 4 with the commit hash and append an `AGENT_LOG.md` entry.
 - 命中 `approval_required_commands` 返回 `require_approval`。
 - 规则冲突时选择更安全决策：`deny` 优先于 `require_approval`，`require_approval` 优先于 `allow`。
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # tests/test_guardrails.py
@@ -752,29 +752,29 @@ def test_guardrail_requires_approval_for_configured_command(tmp_path: Path):
     assert decision.decision == "require_approval"
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_guardrails.py -v`
 
 Expected: FAIL with missing `GuardrailEngine`.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Implement deterministic path and command checks. Do not execute commands or read files inside guardrails.
 
-- [ ] **Step 4: Run focused tests**
+- [x] **Step 4: Run focused tests**
 
 Run: `python -m pytest tests/test_guardrails.py -v`
 
 Expected: PASS.
 
-- [ ] **Step 5: Run full tests**
+- [x] **Step 5: Run full tests**
 
-Run: `make test`
+Run: `python -m pytest -v`
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit and log**
+- [x] **Step 6: Commit and log**
 
 ```bash
 git add safeloop/security/guardrails.py safeloop/security/redaction.py tests/test_guardrails.py PLAN.md AGENT_LOG.md
@@ -782,6 +782,8 @@ git commit -m "feat(task-5): add deterministic guardrails"
 ```
 
 Update `PLAN.md` Task 5 with the commit hash and append an `AGENT_LOG.md` entry.
+
+Task 5 implementation commit: `92c7022` (`feat(task-5): add deterministic guardrails`).
 
 ---
 
