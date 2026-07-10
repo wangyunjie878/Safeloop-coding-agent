@@ -11,9 +11,9 @@ class EventLogStore:
         self._events_by_run_id: dict[str, list[Event]] = defaultdict(list)
 
     def append(self, event: Event) -> Event:
-        stored = event.model_copy(update={"payload": redact_secrets(event.payload)})
+        stored = event.model_copy(deep=True, update={"payload": redact_secrets(event.payload)})
         self._events_by_run_id[stored.run_id].append(stored)
-        return stored
+        return stored.model_copy(deep=True)
 
     def list(self, run_id: str) -> list[Event]:
-        return [event.model_copy() for event in self._events_by_run_id.get(run_id, [])]
+        return [event.model_copy(deep=True) for event in self._events_by_run_id.get(run_id, [])]

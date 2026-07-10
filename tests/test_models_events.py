@@ -229,6 +229,29 @@ def test_event_log_store_redacts_payload_before_persisting():
     assert stored.payload["nested"]["secret"] == "[REDACTED]"
 
 
+def test_event_log_store_returns_isolated_event_copies():
+    store = EventLogStore()
+    event = Event(
+        run_id="run-1",
+        step=1,
+        type="state_changed",
+        payload={"nested": {"secret": "sk-live-1234567890"}},
+    )
+
+    stored = store.append(event)
+    stored.payload["nested"]["secret"] = "mutated-by-returned-copy"
+
+    first_read = store.list("run-1")
+
+    assert first_read[0].payload["nested"]["secret"] == "[REDACTED]"
+
+    first_read[0].payload["nested"]["secret"] = "mutated-by-list-copy"
+
+    second_read = store.list("run-1")
+
+    assert second_read[0].payload["nested"]["secret"] == "[REDACTED]"
+
+
 def test_run_manager_missing_run_raises():
     manager = RunManager(event_store=EventLogStore())
 
