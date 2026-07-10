@@ -1800,7 +1800,11 @@ Update `PLAN.md` Task 13 with the commit hash and append an `AGENT_LOG.md` entry
 - Create: `tests/test_credentials.py`
 - Create: `tests/test_deepseek_client.py`
 - Modify: `safeloop/cli.py`
+- Modify: `safeloop/llm/__init__.py`
+- Modify: `tests/test_cli_bootstrap.py` if needed for implemented `credentials` behavior
 - Modify: `PLAN.md`
+- Modify: `AGENT_LOG.md`
+- Create: `.superpowers/sdd/task-14-report.md`
 
 **Interfaces:**
 - Consumes: `HarnessConfig`, `LLMRequest`
@@ -1821,7 +1825,7 @@ Update `PLAN.md` Task 13 with the commit hash and append an `AGENT_LOG.md` entry
 - `credentials set` 使用 `getpass.getpass()` 隐藏输入。
 - DeepSeek client 使用 OpenAI-compatible chat completions HTTP API；单元测试使用 `httpx.MockTransport`。
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # tests/test_credentials.py
@@ -1887,42 +1891,44 @@ def test_deepseek_client_uses_http_transport_without_real_network():
     assert '"finish"' in raw
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_credentials.py tests/test_deepseek_client.py -v`
 
-Expected: FAIL with missing credential and DeepSeek modules.
+Observed RED: collection failed with `ModuleNotFoundError: No module named 'safeloop.credentials'` and `ModuleNotFoundError: No module named 'safeloop.llm.deepseek'`.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Implement credential backends and DeepSeek client. Do not store or print any real key in tests, logs, README, or config samples.
 
-- [ ] **Step 4: Run focused tests**
+- [x] **Step 4: Run focused tests**
 
 Run: `python -m pytest tests/test_credentials.py tests/test_deepseek_client.py -v`
 
-Expected: PASS.
+Observed GREEN: `12 passed in 0.56s`.
 
-- [ ] **Step 5: Run secret scan commands**
+- [x] **Step 5: Run secret scan commands**
 
 Run: `Get-ChildItem -Recurse -File | Select-String -Pattern 'sk-'`
 
-Expected: Only test dummy strings such as `sk-test`, `sk-secret`, `sk-env` appear; no real key appears.
+Observed: matches are limited to dummy placeholders in tests, docs, and generated `.pyc` cache entries such as `sk-test`, `sk-secret`, `sk-env`, and existing redaction/test fixtures; no real API key appeared.
 
-- [ ] **Step 6: Run full tests**
+- [x] **Step 6: Run full tests**
 
-Run: `make test`
+Run: `python -m pytest -v`
 
-Expected: PASS.
+Observed GREEN: `65 passed in 1.70s`.
 
-- [ ] **Step 7: Commit and log**
+- [x] **Step 7: Commit and log**
 
 ```bash
 git add safeloop/credentials.py safeloop/llm/deepseek.py safeloop/cli.py tests/test_credentials.py tests/test_deepseek_client.py PLAN.md AGENT_LOG.md
 git commit -m "feat(task-14): add credential manager and deepseek client"
 ```
 
-Update `PLAN.md` Task 14 with the commit hash and append an `AGENT_LOG.md` entry.
+Implementation commit: `PENDING_FINAL_HASH` (`feat(task-14): add credential manager and deepseek client`).
+
+Note: this task record uses a placeholder because a commit cannot embed its own final hash without a follow-up commit or amend loop that changes the hash again.
 
 ---
 
