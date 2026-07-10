@@ -85,3 +85,50 @@ Matches were limited to dummy placeholders and existing test/redaction fixtures 
 ## Hash Traceability
 
 The implementation commit was recorded in a follow-up process commit because the final hash of a feature commit cannot be written into files inside that same exact commit.
+
+## Review-Fix Evidence
+
+### RED
+
+Command:
+
+```bash
+python -m pytest tests/test_credentials.py tests/test_deepseek_client.py -v
+```
+
+Observed failures:
+
+```text
+FAILED tests/test_credentials.py::test_keyring_backend_clear_propagates_unexpected_errors
+FAILED tests/test_deepseek_client.py::test_deepseek_client_raises_clear_error_on_non_json_response
+```
+
+### GREEN
+
+Focused command:
+
+```bash
+python -m pytest tests/test_credentials.py tests/test_deepseek_client.py -v
+```
+
+Observed result:
+
+```text
+14 passed in 0.57s
+```
+
+Full-suite command:
+
+```bash
+python -m pytest -v
+```
+
+Observed result:
+
+```text
+67 passed in 1.76s
+```
+
+### Review-Fix Commit
+
+Pending until the review-fix commit is created.

@@ -74,3 +74,14 @@ def test_deepseek_client_raises_clear_error_on_malformed_response():
 
     with pytest.raises(DeepSeekClientError, match="Malformed"):
         client.complete(LLMRequest(task="Explain", feedback=[], memories=[], events=[]))
+
+
+def test_deepseek_client_raises_clear_error_on_non_json_response():
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, text="not json")
+
+    http_client = httpx.Client(transport=httpx.MockTransport(handler))
+    client = DeepSeekClient(api_key="sk-test", http_client=http_client)
+
+    with pytest.raises(DeepSeekClientError, match="Malformed DeepSeek response"):
+        client.complete(LLMRequest(task="Explain", feedback=[], memories=[], events=[]))

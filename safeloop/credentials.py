@@ -5,6 +5,7 @@ import os
 from typing import Literal
 
 import keyring
+from keyring.errors import PasswordDeleteError
 from dotenv import dotenv_values
 
 
@@ -54,8 +55,10 @@ class CredentialManager:
             raise CredentialError(f"{self.backend} backend is read-only")
         try:
             keyring.delete_password(_SERVICE_NAME, provider)
-        except Exception:
+        except PasswordDeleteError:
             return
+        except Exception as exc:
+            raise CredentialError(f"Failed to clear credential for {provider}") from exc
 
     def _env_var_name(self, provider: str) -> str:
         try:
@@ -67,4 +70,3 @@ class CredentialManager:
     def _validate_key(key: str) -> None:
         if not key.strip():
             raise CredentialError("Empty keys are invalid")
-

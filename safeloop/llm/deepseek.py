@@ -43,7 +43,11 @@ class DeepSeekClient:
             raise DeepSeekClientError(f"DeepSeek request failed with status {response.status_code}")
 
         try:
-            return response.json()["choices"][0]["message"]["content"]
+            payload = response.json()
+        except ValueError as exc:
+            raise DeepSeekClientError("Malformed DeepSeek response payload: response was not valid JSON") from exc
+
+        try:
+            return payload["choices"][0]["message"]["content"]
         except (KeyError, IndexError, TypeError) as exc:
             raise DeepSeekClientError("Malformed DeepSeek response payload") from exc
-

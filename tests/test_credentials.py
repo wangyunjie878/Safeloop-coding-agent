@@ -44,6 +44,18 @@ def test_keyring_backend_can_set_get_status_and_clear(fake_keyring: _FakeKeyring
     assert manager.status("deepseek") == {"provider": "deepseek", "status": "missing"}
 
 
+def test_keyring_backend_clear_propagates_unexpected_errors(monkeypatch: pytest.MonkeyPatch):
+    class _ExplodingKeyring(_FakeKeyring):
+        def delete_password(self, service: str, username: str) -> None:
+            raise RuntimeError("boom")
+
+    monkeypatch.setattr("safeloop.credentials.keyring", _ExplodingKeyring())
+    manager = CredentialManager(backend="keyring")
+
+    with pytest.raises(CredentialError, match="Failed to clear"):
+        manager.clear_key("deepseek")
+
+
 def test_status_never_exposes_key_material(fake_keyring: _FakeKeyring):
     manager = CredentialManager(backend="keyring")
     manager.set_key("deepseek", "sk-secret")
@@ -123,4 +135,3 @@ def test_cli_credentials_status_does_not_print_key_material(
     assert result.returncode == 0
     assert "configured" in result.stdout
     assert "sk-secret" not in result.stdout
-
