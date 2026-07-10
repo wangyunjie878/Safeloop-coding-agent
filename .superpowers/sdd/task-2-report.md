@@ -24,3 +24,9 @@
 - Commit hash: `2699c02` (`fix(task-2): remove toolresult metadata`)
 - Files changed: `safeloop/models.py`, `tests/test_models_events.py`, `PLAN.md`, `AGENT_LOG.md`, `.superpowers/sdd/task-2-report.md`
 - Concerns: `ToolResult` now matches SPEC 6.3 exactly for Task 2; later-task metadata handling remains reserved for the later task that explicitly introduces it.
+
+- Status: FIXED
+- Tests run and results: `python -m pytest tests/test_models_events.py -v` failed first on the relative workspace assertion, then `python -m pytest tests/test_models_events.py tests/test_config.py -v` passed 16/16 and `python -m pytest -v` passed 22/22.
+- Commit hash: `e3b1377` (`fix(task-2): resolve run workspace paths`)
+- Files changed: `safeloop/models.py`, `tests/test_models_events.py`, `PLAN.md`, `AGENT_LOG.md`, `.superpowers/sdd/task-2-report.md`
+- Concerns: `RunRecord.workspace` now matches `HarnessConfig.workspace` by resolving relative inputs eagerly; no additional model fields were changed.
