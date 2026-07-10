@@ -193,7 +193,7 @@ Task 15
 - CLI 使用标准库 `argparse`，先提供 `--version`、`--help`、`demo`、`web`、`credentials`、`run` 子命令占位入口；未实现的占位子命令返回 exit code `1` 并打印包含 `not yet implemented` 的信息，不执行 agent。
 - `.gitignore` 必须包含 `.env`, `.venv/`, `__pycache__/`, `.pytest_cache/`, `.safeloop/`, `dist/`, `build/`。
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # tests/test_cli_bootstrap.py
@@ -227,23 +227,23 @@ def test_version_flag_prints_version():
     assert result.stdout.strip().startswith("safeloop ")
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `python -m pytest tests/test_cli_bootstrap.py -v`
 
 Expected: FAIL with `ModuleNotFoundError: No module named 'safeloop'`.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Create the package files and CLI entry with the interfaces listed above. `main()` must return an integer exit code. `__main__.py` must call `raise SystemExit(main())`.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `python -m pytest tests/test_cli_bootstrap.py -v`
 
 Expected: PASS for both tests.
 
-- [ ] **Step 5: Verify one-command test target**
+- [x] **Step 5: Verify one-command test target**
 
 Run: `make test`
 
@@ -251,14 +251,16 @@ If `make` is unavailable on Windows, run: `python -m pytest`
 
 Expected: Runs the pytest suite and exits 0.
 
-- [ ] **Step 6: Commit and log**
+- [x] **Step 6: Commit and log**
 
 ```bash
 git add pyproject.toml Makefile .gitignore safeloop tests AGENT_LOG.md PLAN.md
 git commit -m "chore(task-1): bootstrap safeloop package"
 ```
 
-Update `PLAN.md` Task 1 with the commit hash and append an `AGENT_LOG.md` entry naming the subagent.
+Implementation commit: `62635fe` (`chore(task-1): bootstrap safeloop package`).
+
+Updated `AGENT_LOG.md` with the Task 1 entry for the bootstrap subagent.
 
 ---
 
