@@ -63,7 +63,6 @@ class ToolResult(_SafeLoopBaseModel):
     stderr: str = ""
     summary: str = ""
     duration_ms: int = 0
-    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 class GuardrailDecision(_SafeLoopBaseModel):

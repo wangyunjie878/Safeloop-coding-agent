@@ -56,9 +56,7 @@ def test_tool_result_matches_documented_contract():
         "stderr",
         "summary",
         "duration_ms",
-        "metadata",
     ]
-    assert ToolResult.model_fields["metadata"].default_factory is not None
 
 
 def test_tool_result_exposes_execution_summary():
