@@ -1439,7 +1439,7 @@ Update `PLAN.md` Task 10 with the commit hash and append an `AGENT_LOG.md` entry
 
 ### Task 11: Agent State Machine Loop
 
-**Status:** completed in commits `85eec76`, `fe05a47`, and review-fix `54da841`; review-fix focused memory/state-machine tests `15 passed`, full suite `125 passed`. The review fix adds runtime configured-secret filtering for memory, terminal failure handling for memory/LLM boundary errors, and dispatcher schemas on each `LLMRequest`. The optional duplicate `llm_action` event cleanup remains deferred.
+**Status:** completed in commits `85eec76`, `fe05a47`, and review-fix `54da841`; review-fix focused memory/state-machine tests `15 passed`, full suite `125 passed`. The review fix adds runtime configured-secret filtering for memory, terminal failure handling for memory/LLM boundary errors, and dispatcher schemas on each `LLMRequest`. Follow-up branch review fix `173f098` ensures the real DeepSeek client receives the same feedback/memory/event/tool-schema context as mock clients. The optional duplicate `llm_action` event cleanup remains deferred.
 
 **Goal:** 实现核心 agent loop：context -> LLM action -> parse -> guard -> dispatch -> observe -> feedback -> stop/continue。
 
@@ -1973,6 +1973,8 @@ Hash traceability note: the real implementation hash was recorded in a follow-up
 
 Review-fix commit: `4e0af51` (`fix(task-14): harden credentials and deepseek errors`).
 
+Branch review integration fix: `173f098` (`fix(pr-feedback): send agent context to deepseek`) adds an offline `httpx.MockTransport` regression proving DeepSeek requests include redacted feedback, memories, events, and tool schemas. RED: `IndexError: list index out of range` for missing context message. GREEN: `python -m pytest tests/test_deepseek_client.py -v` -> `6 passed`; `python -m pytest tests/test_deepseek_client.py tests/test_memory.py tests/test_state_machine.py -v` -> `21 passed`; `python -m pytest -v` -> `126 passed`.
+
 ---
 
 ### Task 15: CI, Docker Distribution, and README
@@ -1999,7 +2001,7 @@ Review-fix commit: `4e0af51` (`fix(task-14): harden credentials and deepseek err
 - Produces GitLab CI job: `unit-test`
 
 **Expected Implementation:**
-- GitHub Actions on push and pull request runs Python setup, `python -m pytest`, `python -m safeloop demo`, and Docker build.
+- GitHub Actions on every push and pull request, including documentation-only pushes, runs Python setup, `python -m pytest`, `python -m safeloop demo`, and Docker build so the final repository has visible passing Actions checks for the grader.
 - `.gitlab-ci.yml` includes `unit-test` job running `python -m pytest`.
 - Docker image starts WebUI on `0.0.0.0:8000` in mock mode by default.
 - README contains exact sections: Project Overview, Installation, Running, Distribution, Credential Security, Safety Boundaries, Directory Structure, Testing, CI/CD, Known Limits.

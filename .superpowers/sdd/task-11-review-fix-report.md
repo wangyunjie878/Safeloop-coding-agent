@@ -40,3 +40,9 @@ Files changed:
 
 Concerns:
 - The optional raw/parsed duplicate `llm_action` event cleanup remains deferred; it is unrelated to the Important review findings.
+
+Follow-up re-review fix:
+- Reviewer Zeno verified the original three Important findings were addressed, then found one additional Important issue: `DeepSeekClient` dropped `feedback`, `memories`, `events`, and `tool_schemas` when calling the real provider.
+- Commit `173f098` (`fix(pr-feedback): send agent context to deepseek`) added a RED-first `httpx.MockTransport` regression and implementation that serializes redacted SafeLoop context into the DeepSeek chat-completions payload.
+- RED: `python -m pytest tests/test_deepseek_client.py -v` failed with `IndexError: list index out of range` because the context message was missing.
+- GREEN: `python -m pytest tests/test_deepseek_client.py -v` -> `6 passed`; `python -m pytest tests/test_deepseek_client.py tests/test_memory.py tests/test_state_machine.py -v` -> `21 passed`; `python -m pytest -v` -> `126 passed`.
