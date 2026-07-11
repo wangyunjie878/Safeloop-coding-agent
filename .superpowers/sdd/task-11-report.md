@@ -1,7 +1,7 @@
 Status: DONE_WITH_CONCERNS
 
 Commit hash(es):
-- pending
+- `85eec76` (`feat(task-11): add agent state machine`)
 
 RED test command and observed failure:
 

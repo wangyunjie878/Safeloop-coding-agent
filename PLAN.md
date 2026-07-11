@@ -1439,7 +1439,7 @@ Update `PLAN.md` Task 10 with the commit hash and append an `AGENT_LOG.md` entry
 
 ### Task 11: Agent State Machine Loop
 
-**Status:** implemented locally; focused state-machine tests `5 passed`, full suite `121 passed`; commit hash pending.
+**Status:** completed in commit `85eec76`; focused state-machine tests `5 passed`, full suite `121 passed`.
 
 **Goal:** 实现核心 agent loop：context -> LLM action -> parse -> guard -> dispatch -> observe -> feedback -> stop/continue。
 
