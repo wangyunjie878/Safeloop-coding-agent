@@ -62,7 +62,7 @@ Observed result:
 
 ## Commits
 
-- Implementation commit: pending
+- Implementation commit: `f7b48df` (`feat(task-9): add feedback classifier`)
 - Hash-backfill commit: pending
 
 ## Concerns
