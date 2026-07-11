@@ -937,7 +937,7 @@ The review fix narrowed `list_files()` to exclude only `.git`, `.venv`, `__pycac
 
 ### Task 7: Command and Test Tools
 
-**Status:** DONE in commit `PENDING_TASK_7_HASH` (`feat(task-7): add command and test tools`). Implementer subagent Lovelace wrote the tests and implementation; controller completed verification, process documentation, and commit after the subagent timed out before reporting.
+**Status:** DONE in commit `08e849a` (`feat(task-7): add command and test tools`). Implementer subagent Lovelace wrote the tests and implementation; controller completed verification, process documentation, and commit after the subagent timed out before reporting.
 
 **Goal:** 在 workspace 内执行允许的命令和测试命令，收集 exit code、stdout、stderr、耗时和超时结果。
 
