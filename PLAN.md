@@ -1439,7 +1439,7 @@ Update `PLAN.md` Task 10 with the commit hash and append an `AGENT_LOG.md` entry
 
 ### Task 11: Agent State Machine Loop
 
-**Status:** completed in commit `85eec76`; focused state-machine tests `5 passed`, full suite `121 passed`.
+**Status:** completed in commits `85eec76` and `fe05a47`; focused state-machine tests `5 passed`, full suite `121 passed`. Reviewer Nietzsche approved with no Critical or Important issues; Minor note recorded for possible future cleanup of duplicate `llm_action` events.
 
 **Goal:** 实现核心 agent loop：context -> LLM action -> parse -> guard -> dispatch -> observe -> feedback -> stop/continue。
 
@@ -1465,7 +1465,7 @@ Update `PLAN.md` Task 10 with the commit hash and append an `AGENT_LOG.md` entry
 - parse error 进入 feedback；连续 parse error 达到 2 次时停止。
 - guardrail deny 不执行工具，转成反馈并继续下一轮；如果下一轮仍危险，可在 max_steps 前持续记录。
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # tests/test_state_machine.py
@@ -1541,42 +1541,46 @@ def test_state_machine_stops_at_max_steps(tmp_path: Path):
     assert any("max_steps" in str(event.payload) for event in store.list(run.id))
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_state_machine.py -v`
 
 Expected: FAIL with missing `AgentStateMachine`.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Implement the loop and event sequence using existing modules. Keep the state machine independent from CLI and WebUI.
 
-- [ ] **Step 4: Run focused tests**
+- [x] **Step 4: Run focused tests**
 
 Run: `python -m pytest tests/test_state_machine.py -v`
 
 Expected: PASS.
 
-- [ ] **Step 5: Run mechanism-focused tests**
+- [x] **Step 5: Run mechanism-focused tests**
 
 Run: `python -m pytest tests/test_state_machine.py tests/test_guardrails.py tests/test_dispatcher.py tests/test_feedback.py -v`
 
 Expected: PASS.
 
-- [ ] **Step 6: Run full tests**
+- [x] **Step 6: Run full tests**
 
 Run: `make test`
 
 Expected: PASS.
 
-- [ ] **Step 7: Commit and log**
+- [x] **Step 7: Commit and log**
 
 ```bash
 git add safeloop/state_machine.py safeloop/run_manager.py safeloop/events.py tests/test_state_machine.py PLAN.md AGENT_LOG.md
 git commit -m "feat(task-11): add agent state machine loop"
 ```
 
-Update `PLAN.md` Task 11 with the commit hash and append an `AGENT_LOG.md` entry.
+Implementation commit: `85eec76` (`feat(task-11): add agent state machine`).
+
+Traceability commit: `fe05a47` (`docs(task-11): record state machine traceability`).
+
+Task review: reviewer Nietzsche approved Task 11 with no Critical or Important issues. Minor note: valid actions currently produce one raw and one parsed `llm_action` event; this is recorded for later event-schema polish and is not blocking the MVP mechanism requirement.
 
 ---
 
