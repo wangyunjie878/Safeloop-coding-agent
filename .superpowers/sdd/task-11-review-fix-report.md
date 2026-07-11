@@ -52,3 +52,9 @@ Second follow-up re-review fix:
 - Commit `44a2fb7` (`fix(pr-feedback): redact configured secrets in feedback`) threads runtime known secrets into `FeedbackClassifier` for tool-result, parse-error, and guardrail feedback.
 - RED: `python -m pytest tests/test_feedback.py tests/test_state_machine.py -v` failed with `TypeError: FeedbackClassifier.from_tool_result() got an unexpected keyword argument 'known_secrets'` and a state-machine assertion showing `alpha-token-123` in `feedback.raw_excerpt`.
 - GREEN: `python -m pytest tests/test_feedback.py tests/test_state_machine.py -v` -> `17 passed`; `python -m pytest tests/test_deepseek_client.py tests/test_feedback.py tests/test_state_machine.py -v` -> `23 passed`; `python -m pytest -v` -> `128 passed`.
+
+Third follow-up re-review fix:
+- Reviewer Sartre found configured runtime secrets could still leak through memory metadata, unredacted DeepSeek task/context messages, and split `EventLogStore` construction.
+- Commit `5d890ca` (`fix(pr-feedback): close configured secret context leaks`) rejects/redacts configured secrets across all `MemoryEntry` serializable fields, carries `known_secrets` through `LLMRequest` into DeepSeek outbound messages, and seeds the state machine's injected event store directly.
+- RED: `python -m pytest tests/test_memory.py tests/test_deepseek_client.py tests/test_state_machine.py -v` failed for secret metadata not raising, `LLMRequest.known_secrets` being forbidden, and split event-store payloads still containing `alpha-token-123`.
+- GREEN: `python -m pytest tests/test_memory.py tests/test_deepseek_client.py tests/test_state_machine.py -v` -> `25 passed`; `python -m pytest -v` -> `131 passed`.
