@@ -63,7 +63,7 @@ Observed result:
 
 ## Review-Fix Evidence
 
-Review-fix commit: `REVIEW-FIX-PENDING` (`fix(task-6): keep allowed dot directories visible`).
+Review-fix commit: `a02f636` (`fix(task-6): keep allowed dot directories visible`).
 
 RED command:
 
