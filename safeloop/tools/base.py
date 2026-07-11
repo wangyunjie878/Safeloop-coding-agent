@@ -11,3 +11,15 @@ class ToolContext(BaseModel):
     config: HarnessConfig
     run_id: str
     step: int
+
+
+class ToolSpec(BaseModel):
+    model_config = ConfigDict(extra="forbid", validate_assignment=True)
+
+    name: str
+    description: str
+    arguments_schema: dict[str, object]
+
+
+class UnknownToolError(Exception):
+    pass

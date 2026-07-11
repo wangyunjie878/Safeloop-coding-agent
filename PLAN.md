@@ -1066,6 +1066,8 @@ Update `PLAN.md` Task 7 with the commit hash and append an `AGENT_LOG.md` entry.
 
 **Goal:** 用统一 dispatcher 注册、校验和调用所有工具，落实主要贡献“工具分发与执行状态机设计”的工具分发部分。
 
+**Status:** implemented locally; focused dispatcher tests `12 passed`, full suite `99 passed`; commit hash pending.
+
 **Files:**
 - Create: `safeloop/tools/dispatcher.py`
 - Create: `safeloop/tools/memory.py`
@@ -1199,6 +1201,8 @@ git commit -m "feat(task-8): add tool dispatcher"
 ```
 
 Update `PLAN.md` Task 8 with the commit hash and append an `AGENT_LOG.md` entry.
+
+**Task 8 Evidence:** RED regression `test_memory_tools_report_unavailable_without_arguments` failed because `save_memory` reported missing `content`; GREEN focused verification `python -m pytest tests/test_dispatcher.py -v` = `12 passed`; full verification `python -m pytest -v` = `99 passed`. Commit: pending.
 
 ---
 
