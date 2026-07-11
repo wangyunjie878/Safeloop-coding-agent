@@ -930,6 +930,9 @@ Implementation commit: `54c806d` (`feat(task-6): add workspace bounded file tool
 
 Updated `PLAN.md` Task 6 with the implementation hash and appended the Task 6 `AGENT_LOG.md` entry.
 
+Review-fix commit: `REVIEW-FIX-PENDING` (`fix(task-6): keep allowed dot directories visible`).
+The review fix narrowed `list_files()` to exclude only `.git`, `.venv`, `__pycache__`, `.pytest_cache`, and `.safeloop`, while the new regression coverage proved `.github` stays visible and `patch_file()` still rejects zero-match edits without changing file contents.
+
 ---
 
 ### Task 7: Command and Test Tools

@@ -88,9 +88,7 @@ class FileTools:
         workspace = _workspace_root(self._context)
         relative_paths: list[str] = []
         for root, dirs, files in os.walk(candidate):
-            dirs[:] = sorted(
-                directory for directory in dirs if directory not in _EXCLUDED_DIR_NAMES and not directory.startswith(".")
-            )
+            dirs[:] = sorted(directory for directory in dirs if directory not in _EXCLUDED_DIR_NAMES)
             current_root = Path(root)
             for filename in sorted(files):
                 if filename in _SENSITIVE_PATH_NAMES:

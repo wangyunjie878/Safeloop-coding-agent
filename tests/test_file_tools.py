@@ -150,10 +150,26 @@ def test_patch_file_rejects_ambiguous_match_and_leaves_file_unchanged(tmp_path: 
     assert file_path.read_text(encoding="utf-8") == original
 
 
+def test_patch_file_rejects_zero_match_and_leaves_file_unchanged(tmp_path: Path):
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    file_path = workspace / "app.py"
+    original = "alpha\nbeta\n"
+    file_path.write_text(original, encoding="utf-8")
+
+    tools = make_tools(workspace)
+    result = tools.patch_file("app.py", "gamma", "omega")
+
+    assert result.success is False
+    assert file_path.read_text(encoding="utf-8") == original
+
+
 def test_list_files_excludes_tooling_directories(tmp_path: Path):
     workspace = tmp_path / "workspace"
     workspace.mkdir()
     (workspace / "visible.txt").write_text("ok", encoding="utf-8")
+    (workspace / ".github").mkdir()
+    (workspace / ".github" / "workflow.yml").write_text("name: ci", encoding="utf-8")
     for folder in [".git", ".venv", "__pycache__", ".pytest_cache", ".safeloop"]:
         target = workspace / folder
         target.mkdir()
@@ -161,8 +177,11 @@ def test_list_files_excludes_tooling_directories(tmp_path: Path):
 
     tools = make_tools(workspace)
     result = tools.list_files(".")
+    normalized_stdout = result.stdout.replace("\\", "/")
+    listed_paths = normalized_stdout.splitlines()
 
     assert result.success is True
-    assert "visible.txt" in result.stdout
+    assert "visible.txt" in normalized_stdout
+    assert ".github/workflow.yml" in normalized_stdout
     for folder in [".git", ".venv", "__pycache__", ".pytest_cache", ".safeloop"]:
-        assert folder not in result.stdout
+        assert all(not path.startswith(f"{folder}/") and path != folder for path in listed_paths)

@@ -61,3 +61,45 @@ Observed result:
 - Every file operation is guarded by the existing Task 5 guardrail engine before touching the filesystem.
 - The file tools return structured `ToolResult` objects instead of raising on expected safety failures, which keeps the calling surface simple for later tasks.
 
+## Review-Fix Evidence
+
+Review-fix commit: `REVIEW-FIX-PENDING` (`fix(task-6): keep allowed dot directories visible`).
+
+RED command:
+
+```bash
+python -m pytest tests/test_file_tools.py -v
+```
+
+Observed RED:
+
+```text
+tests/test_file_tools.py::test_list_files_excludes_tooling_directories FAILED
+AssertionError: assert '.github/workflow.yml' in result.stdout
+```
+
+This failure confirmed the over-broad dot-directory filter was hiding a legitimate `.github` directory. The new `patch_file()` zero-match regression already passed in the RED run, so the only implementation fix needed was the directory filter.
+
+GREEN focused command:
+
+```bash
+python -m pytest tests/test_file_tools.py -v
+```
+
+Observed GREEN:
+
+```text
+12 passed in 0.52s
+```
+
+GREEN full-suite command:
+
+```bash
+python -m pytest -v
+```
+
+Observed GREEN:
+
+```text
+79 passed in 3.80s
+```
