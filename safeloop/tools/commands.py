@@ -119,7 +119,15 @@ def _execute_command(
             duration_ms=duration_ms,
         )
     except OSError as exc:
-        raise CommandToolError(f"failed to run command: {command}") from exc
+        duration_ms = int((time.perf_counter() - started) * 1000)
+        return _tool_result(
+            tool_name,
+            False,
+            f"failed to run command: {command}",
+            exit_code=None,
+            stderr=str(exc),
+            duration_ms=duration_ms,
+        )
 
 
 class CommandTools:

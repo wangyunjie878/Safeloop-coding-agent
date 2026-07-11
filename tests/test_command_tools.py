@@ -75,6 +75,21 @@ def test_run_command_requires_approval_without_execution(tmp_path: Path, monkeyp
     assert "require_approval" in result.summary
 
 
+def test_run_command_blocks_whitespace_variant_without_execution(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    tools = make_tools(tmp_path)
+
+    def boom(*args, **kwargs):
+        raise AssertionError("subprocess.run should not be called for whitespace variants of blocked commands")
+
+    monkeypatch.setattr("safeloop.tools.commands.subprocess.run", boom)
+
+    result = tools.run_command("git  push origin main")
+
+    assert result.success is False
+    assert result.exit_code is None
+    assert "blocked" in result.summary.lower() or "deny" in result.summary.lower()
+
+
 def test_run_tests_uses_configured_test_command(tmp_path: Path):
     tools = make_tools(tmp_path, test_command='python -c "print(\'configured tests\')"')
 
@@ -123,3 +138,19 @@ def test_run_command_truncates_stdout_and_stderr(tmp_path: Path):
     assert "[truncated 8 chars]" in result.stdout
     assert result.stderr.startswith("fedcba98")
     assert "[truncated 8 chars]" in result.stderr
+
+
+def test_run_command_returns_structured_result_for_oserror(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    tools = make_tools(tmp_path)
+
+    def raise_oserror(*args, **kwargs):
+        raise OSError("spawn failed")
+
+    monkeypatch.setattr("safeloop.tools.commands.subprocess.run", raise_oserror)
+
+    result = tools.run_command('python -c "print(\'hello\')"')
+
+    assert result.success is False
+    assert result.exit_code is None
+    assert "failed to run command" in result.summary
+    assert "spawn failed" in result.stderr
