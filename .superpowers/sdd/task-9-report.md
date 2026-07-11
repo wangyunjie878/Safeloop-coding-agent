@@ -4,6 +4,7 @@ Commit hash(es):
 - `f7b48df` (`feat(task-9): add feedback classifier`)
 - `28e483b` (`docs(task-9): record feedback classifier traceability`)
 - `760ec1e` (`docs(task-9): fix feedback report contract`)
+- `b78810d` (`docs(task-9): record feedback review fix hash`)
 
 RED test command and observed failure:
 
