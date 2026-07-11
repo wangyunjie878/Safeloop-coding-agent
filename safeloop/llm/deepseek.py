@@ -55,7 +55,7 @@ class DeepSeekClient:
                 "role": "system",
                 "content": "You are SafeLoop. Respond with JSON actions only.",
             },
-            {"role": "user", "content": request.task},
+            {"role": "user", "content": str(redact_secrets(request.task, known_secrets=request.known_secrets))},
         ]
         context = {
             "feedback": [item.model_dump(mode="json") for item in request.feedback],
@@ -64,7 +64,7 @@ class DeepSeekClient:
             "tool_schemas": request.tool_schemas,
         }
         if any(context.values()):
-            redacted_context = redact_secrets(context)
+            redacted_context = redact_secrets(context, known_secrets=request.known_secrets)
             redacted = json.dumps(redacted_context, ensure_ascii=False, sort_keys=True)
             messages.append(
                 {

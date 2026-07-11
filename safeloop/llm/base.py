@@ -15,6 +15,7 @@ class LLMRequest(BaseModel):
     memories: list[MemoryEntry] = Field(default_factory=list)
     events: list[Event] = Field(default_factory=list)
     tool_schemas: list[dict[str, object]] = Field(default_factory=list)
+    known_secrets: list[str] = Field(default_factory=list, exclude=True)
 
 
 class LLMClient(Protocol):

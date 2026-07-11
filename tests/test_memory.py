@@ -68,6 +68,48 @@ def test_memory_store_rejects_and_redacts_configured_known_secrets(tmp_path: Pat
     assert queried[0].content == "token=[REDACTED]"
 
 
+def test_memory_store_rejects_secret_metadata_and_redacts_legacy_metadata(tmp_path: Path):
+    known_secret = "alpha-token-123"
+    store = MemoryStore(tmp_path, known_secrets=[known_secret])
+
+    with pytest.raises(MemoryStoreError, match="secret"):
+        store.save(
+            scope="project",
+            tags=["tests", known_secret],
+            content="safe content",
+            source_run_id="run-1",
+        )
+    with pytest.raises(MemoryStoreError, match="secret"):
+        store.save(
+            scope="project",
+            tags=["tests"],
+            content="safe content",
+            source_run_id=known_secret,
+        )
+
+    memory_path = tmp_path / ".safeloop" / "memory.json"
+    memory_path.parent.mkdir(parents=True, exist_ok=True)
+    memory_path.write_text(
+        json.dumps(
+            [
+                {
+                    "id": "legacy-entry",
+                    "scope": "project",
+                    "tags": ["tests", known_secret],
+                    "content": "safe content",
+                    "source_run_id": known_secret,
+                }
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    entry = store.load_all()[0]
+    assert known_secret not in entry.tags
+    assert "[REDACTED]" in entry.tags
+    assert entry.source_run_id == "[REDACTED]"
+
+
 def test_memory_store_clear_removes_entries(tmp_path: Path):
     store = MemoryStore(tmp_path)
     store.save(scope="project", tags=["tests"], content="Run tests before finishing.")

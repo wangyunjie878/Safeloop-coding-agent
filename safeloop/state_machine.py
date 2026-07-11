@@ -39,6 +39,7 @@ class AgentStateMachine:
         feedback: list[Feedback] = []
         parse_errors = 0
         known_secrets = collect_runtime_redaction_secrets(config)
+        self._event_store.add_known_secrets(known_secrets)
         memory_store = MemoryStore(
             config.workspace,
             known_secrets=known_secrets,
@@ -54,6 +55,7 @@ class AgentStateMachine:
                     memories=memory_store.query(scope="project"),
                     events=self._event_store.list(run.id),
                     tool_schemas=dispatcher.tool_schemas(),
+                    known_secrets=known_secrets,
                 )
                 raw_action = self._llm_client.complete(request)
                 self._append_event(run.id, step, "llm_action", {"raw": raw_action})

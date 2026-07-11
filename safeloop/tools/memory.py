@@ -42,7 +42,7 @@ class MemoryStore:
         content: str,
         source_run_id: str | None = None,
     ) -> MemoryEntry:
-        self._reject_secret_content(content)
+        self._reject_secret_entry_fields(tags=tags, content=content, source_run_id=source_run_id)
         entries = self.load_all()
         entry = MemoryEntry(
             id=str(uuid4()),
@@ -90,14 +90,29 @@ class MemoryStore:
         payload = [entry.model_dump(mode="json") for entry in entries]
         self._memory_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
-    def _reject_secret_content(self, content: str) -> None:
-        redacted = redact_secrets(content, known_secrets=self._known_secrets)
-        if redacted != content:
-            raise MemoryStoreError("memory content appears to contain a secret")
+    def _reject_secret_entry_fields(
+        self,
+        tags: list[str],
+        content: str,
+        source_run_id: str | None,
+    ) -> None:
+        values = [content, *tags]
+        if source_run_id is not None:
+            values.append(source_run_id)
+        for value in values:
+            redacted = redact_secrets(value, known_secrets=self._known_secrets)
+            if redacted != value:
+                raise MemoryStoreError("memory entry appears to contain a secret")
 
     def _redact_entry(self, entry: MemoryEntry) -> MemoryEntry:
         content = redact_secrets(entry.content, known_secrets=self._known_secrets)
-        return entry.model_copy(update={"content": content})
+        tags = [str(redact_secrets(tag, known_secrets=self._known_secrets)) for tag in entry.tags]
+        source_run_id = (
+            str(redact_secrets(entry.source_run_id, known_secrets=self._known_secrets))
+            if entry.source_run_id is not None
+            else None
+        )
+        return entry.model_copy(update={"content": content, "tags": tags, "source_run_id": source_run_id})
 
 
 class MemoryTools:

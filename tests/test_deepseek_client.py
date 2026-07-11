@@ -107,6 +107,38 @@ def test_deepseek_client_serializes_redacted_agent_context():
     assert "[REDACTED]" in context_text
 
 
+def test_deepseek_client_redacts_configured_known_secret_from_task_and_context():
+    seen: dict[str, object] = {}
+    known_secret = "alpha-token-123"
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen["body"] = json.loads(request.content.decode("utf-8"))
+        return httpx.Response(200, json={"choices": [{"message": {"content": "ok"}}]})
+
+    http_client = httpx.Client(transport=httpx.MockTransport(handler))
+    client = DeepSeekClient(api_key="sk-test", http_client=http_client)
+    request = LLMRequest(
+        task=f"Fix issue involving {known_secret}",
+        memories=[
+            MemoryEntry(
+                id="memory-1",
+                scope="project",
+                tags=["tests"],
+                content=f"Use pytest and avoid {known_secret}.",
+            )
+        ],
+        events=[Event(run_id="run-1", step=1, type="note", payload={"value": known_secret})],
+        tool_schemas=[{"name": "finish", "arguments": {}}],
+        known_secrets=[known_secret],
+    )
+
+    assert client.complete(request) == "ok"
+
+    body_text = json.dumps(seen["body"])
+    assert known_secret not in body_text
+    assert "[REDACTED]" in body_text
+
+
 def test_deepseek_client_raises_clear_error_on_non_2xx_response():
     def handler(request: httpx.Request) -> httpx.Response:
         return httpx.Response(401, json={"error": {"message": "bad key"}})

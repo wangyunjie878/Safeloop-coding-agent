@@ -123,6 +123,29 @@ def test_state_machine_redacts_configured_runtime_secret_from_feedback(tmp_path:
     assert "[REDACTED]" in feedback.raw_excerpt
 
 
+def test_state_machine_seeds_injected_event_store_with_runtime_secrets(tmp_path: Path, monkeypatch):
+    env_var = "SAFELOOP_EVENT_SECRET"
+    known_secret = "alpha-token-123"
+    monkeypatch.setenv(env_var, known_secret)
+    manager_store = EventLogStore()
+    state_store = EventLogStore()
+    manager = RunManager(event_store=manager_store)
+    client = MockLLMClient(
+        responses=[
+            '{"tool_name":"run_command","arguments":{"command":"python -c \\"print(\\\'alpha-token-123\\\')\\""},"reason":"emit secret","expected_outcome":"fail"}',
+            '{"tool_name":"finish","arguments":{"message":"done"},"reason":"stop","expected_outcome":"stop"}',
+        ]
+    )
+    machine = AgentStateMachine(run_manager=manager, event_store=state_store, llm_client=client)
+
+    run = machine.run("protect split event stores", make_config(tmp_path, redaction_secret_env_vars=[env_var]))
+
+    assert run.status == "finished"
+    state_events_text = json.dumps([event.model_dump(mode="json") for event in state_store.list(run.id)])
+    assert known_secret not in state_events_text
+    assert "[REDACTED]" in state_events_text
+
+
 class CapturingFinishLLM:
     def __init__(self) -> None:
         self.requests: list[LLMRequest] = []
