@@ -815,7 +815,7 @@ Task 5 review-fix commit: `5a48883` (`fix(task-5): guard generic action argument
 - `patch_file()` 要求 `old` 在文件中出现一次且仅一次；否则返回失败，不写入。
 - `list_files()` 不列出 `.git`, `.venv`, `__pycache__`, `.pytest_cache`, `.safeloop`。
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # tests/test_file_tools.py
@@ -887,40 +887,57 @@ def test_read_file_rejects_too_large_file(tmp_path: Path):
     assert "too large" in result.summary
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_file_tools.py -v`
 
-Expected: FAIL with missing `FileTools`.
+Observed RED:
 
-- [ ] **Step 3: Write minimal implementation**
+```text
+ModuleNotFoundError: No module named 'safeloop.tools'
+```
+
+- [x] **Step 3: Write minimal implementation**
 
 Implement `ToolContext` and file operations. Reuse path boundary checks from Task 5.
 
-- [ ] **Step 4: Run focused tests**
+- [x] **Step 4: Run focused tests**
 
 Run: `python -m pytest tests/test_file_tools.py -v`
 
-Expected: PASS.
+Observed GREEN: `11 passed in 0.49s`
 
-- [ ] **Step 5: Run full tests**
+- [x] **Step 5: Run full tests**
 
 Run: `make test`
 
-Expected: PASS.
+Windows fallback used here:
 
-- [ ] **Step 6: Commit and log**
+```bash
+python -m pytest -v
+```
+
+Observed GREEN: `78 passed in 3.89s`
+
+- [x] **Step 6: Commit and log**
 
 ```bash
 git add safeloop/tools/base.py safeloop/tools/files.py tests/test_file_tools.py PLAN.md AGENT_LOG.md
 git commit -m "feat(task-6): add workspace bounded file tools"
 ```
 
-Update `PLAN.md` Task 6 with the commit hash and append an `AGENT_LOG.md` entry.
+Implementation commit: `54c806d` (`feat(task-6): add workspace bounded file tools`).
+
+Updated `PLAN.md` Task 6 with the implementation hash and appended the Task 6 `AGENT_LOG.md` entry.
+
+Review-fix commit: `a02f636` (`fix(task-6): keep allowed dot directories visible`).
+The review fix narrowed `list_files()` to exclude only `.git`, `.venv`, `__pycache__`, `.pytest_cache`, and `.safeloop`, while the new regression coverage proved `.github` stays visible and `patch_file()` still rejects zero-match edits without changing file contents.
 
 ---
 
 ### Task 7: Command and Test Tools
+
+**Status:** DONE in commit `08e849a` (`feat(task-7): add command and test tools`). Implementer subagent Lovelace wrote the tests and implementation; controller completed verification, process documentation, and commit after the subagent timed out before reporting.
 
 **Goal:** 在 workspace 内执行允许的命令和测试命令，收集 exit code、stdout、stderr、耗时和超时结果。
 
@@ -944,7 +961,7 @@ Update `PLAN.md` Task 6 with the commit hash and append an `AGENT_LOG.md` entry.
 - timeout 返回 `success=False`, `summary` 包含 `timeout`。
 - `run_tests()` 使用 `config.test_command`。
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # tests/test_command_tools.py
@@ -1004,29 +1021,37 @@ def test_run_command_reports_timeout(tmp_path: Path):
     assert "timeout" in result.summary.lower()
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_command_tools.py -v`
 
 Expected: FAIL with missing `CommandTools`.
 
-- [ ] **Step 3: Write minimal implementation**
+Observed RED:
+
+```text
+ModuleNotFoundError: No module named 'safeloop.tools.commands'
+```
+
+- [x] **Step 3: Write minimal implementation**
 
 Implement command execution with guardrail checks, timeout handling, output truncation and standardized `ToolResult`.
 
-- [ ] **Step 4: Run focused tests**
+- [x] **Step 4: Run focused tests**
 
 Run: `python -m pytest tests/test_command_tools.py -v`
 
 Expected: PASS.
 
-- [ ] **Step 5: Run full tests**
+Observed GREEN: `7 passed in 3.26s`
 
-Run: `make test`
+- [x] **Step 5: Run full tests**
 
-Expected: PASS.
+Run: `python -m pytest -v`
 
-- [ ] **Step 6: Commit and log**
+Observed GREEN: `86 passed in 6.75s`
+
+- [x] **Step 6: Commit and log**
 
 ```bash
 git add safeloop/tools/commands.py safeloop/tools/base.py tests/test_command_tools.py PLAN.md AGENT_LOG.md
@@ -1035,11 +1060,15 @@ git commit -m "feat(task-7): add command and test tools"
 
 Update `PLAN.md` Task 7 with the commit hash and append an `AGENT_LOG.md` entry.
 
+**Branch Review Fix:** reviewer Hooke found that command guardrails could be bypassed by extra whitespace and that `OSError` escaped as `CommandToolError` instead of a structured `ToolResult`. RED tests `test_guardrail_normalizes_command_whitespace_before_matching`, `test_run_command_blocks_whitespace_variant_without_execution`, and `test_run_command_returns_structured_result_for_oserror` failed first; GREEN focused verification `python -m pytest tests/test_guardrails.py tests/test_command_tools.py -v` = `19 passed`; full verification `python -m pytest -v` = `103 passed`. Commit: `f58d2f5`.
+
 ---
 
 ### Task 8: Tool Dispatcher and Tool Registry
 
 **Goal:** 用统一 dispatcher 注册、校验和调用所有工具，落实主要贡献“工具分发与执行状态机设计”的工具分发部分。
+
+**Status:** completed in commit `4c43dbd`; review fix added in commit `e631cc3`; focused dispatcher tests `13 passed`, full suite `100 passed`.
 
 **Files:**
 - Create: `safeloop/tools/dispatcher.py`
@@ -1174,6 +1203,8 @@ git commit -m "feat(task-8): add tool dispatcher"
 ```
 
 Update `PLAN.md` Task 8 with the commit hash and append an `AGENT_LOG.md` entry.
+
+**Task 8 Evidence:** RED regression `test_memory_tools_report_unavailable_without_arguments` failed because `save_memory` reported missing `content`; GREEN focused verification `python -m pytest tests/test_dispatcher.py -v` = `12 passed`; full verification `python -m pytest -v` = `99 passed`. Reviewer Hubble found one Important process issue, corrected in review-fix commit `e631cc3`; final focused verification `python -m pytest tests/test_dispatcher.py -v` = `13 passed`; final full verification `python -m pytest -v` = `100 passed`. Implementation commit: `4c43dbd`.
 
 ---
 

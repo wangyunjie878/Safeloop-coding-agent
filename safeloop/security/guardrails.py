@@ -95,9 +95,10 @@ def _path_within_any(workspace: Path, candidate: Path | str, anchors: Iterable[P
 
 
 def _command_matches(command: str, patterns: Iterable[str]) -> str | None:
-    normalized = command.casefold()
+    normalized = " ".join(command.casefold().split())
     for pattern in patterns:
-        if pattern and pattern.casefold() in normalized:
+        normalized_pattern = " ".join(pattern.casefold().split())
+        if normalized_pattern and normalized_pattern in normalized:
             return pattern
     return None
 
