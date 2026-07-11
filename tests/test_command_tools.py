@@ -60,6 +60,21 @@ def test_run_command_blocks_dangerous_command_without_execution(tmp_path: Path, 
     assert "deny" in result.summary.lower() or "blocked" in result.summary.lower()
 
 
+def test_run_command_requires_approval_without_execution(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    tools = make_tools(tmp_path)
+
+    def boom(*args, **kwargs):
+        raise AssertionError("subprocess.run should not be called for approval-required commands")
+
+    monkeypatch.setattr("safeloop.tools.commands.subprocess.run", boom)
+
+    result = tools.run_command("pip install requests")
+
+    assert result.success is False
+    assert result.exit_code is None
+    assert "require_approval" in result.summary
+
+
 def test_run_tests_uses_configured_test_command(tmp_path: Path):
     tools = make_tools(tmp_path, test_command='python -c "print(\'configured tests\')"')
 
