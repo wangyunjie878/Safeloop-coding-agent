@@ -1210,6 +1210,8 @@ Update `PLAN.md` Task 8 with the commit hash and append an `AGENT_LOG.md` entry.
 
 ### Task 9: Feedback Classifier
 
+**Status:** implemented locally; focused feedback tests `7 passed`, full suite `110 passed`; commit hash pending.
+
 **Goal:** 把工具输出、测试失败、超时、护栏拦截和解析错误转成下一轮 LLM 可消费的压缩反馈。
 
 **Files:**
