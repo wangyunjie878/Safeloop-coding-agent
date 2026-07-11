@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import pytest
@@ -35,6 +36,36 @@ def test_memory_store_rejects_secret_content(tmp_path: Path):
 
     assert store.load_all() == []
     assert not (tmp_path / ".safeloop" / "memory.json").exists()
+
+
+def test_memory_store_rejects_and_redacts_configured_known_secrets(tmp_path: Path):
+    known_secret = "alpha-token-123"
+    store = MemoryStore(tmp_path, known_secrets=[known_secret])
+
+    with pytest.raises(MemoryStoreError, match="secret"):
+        store.save(scope="project", tags=["key"], content=f"token={known_secret}")
+
+    memory_path = tmp_path / ".safeloop" / "memory.json"
+    memory_path.parent.mkdir(parents=True)
+    memory_path.write_text(
+        json.dumps(
+            [
+                {
+                    "id": "legacy-entry",
+                    "scope": "project",
+                    "tags": ["key"],
+                    "content": f"token={known_secret}",
+                }
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    loaded = store.load_all()
+    queried = store.query(scope="project")
+
+    assert loaded[0].content == "token=[REDACTED]"
+    assert queried[0].content == "token=[REDACTED]"
 
 
 def test_memory_store_clear_removes_entries(tmp_path: Path):

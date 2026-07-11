@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 from safeloop.config import HarnessConfig
@@ -8,13 +9,19 @@ from safeloop.run_manager import RunManager
 from safeloop.state_machine import AgentStateMachine
 
 
-def make_config(workspace: Path, max_steps: int = 10, test_command: str | None = None) -> HarnessConfig:
+def make_config(
+    workspace: Path,
+    max_steps: int = 10,
+    test_command: str | None = None,
+    redaction_secret_env_vars: list[str] | None = None,
+) -> HarnessConfig:
     return HarnessConfig(
         workspace=workspace,
         test_command=test_command or "python -c \"print('tests pass')\"",
         blocked_commands=["git push"],
         approval_required_commands=["pip install"],
         max_steps=max_steps,
+        redaction_secret_env_vars=redaction_secret_env_vars or ["DEEPSEEK_API_KEY"],
     )
 
 
@@ -86,6 +93,47 @@ def test_state_machine_feeds_test_failure_back_to_next_llm_request(tmp_path: Pat
     assert run.status == "finished"
     assert len(client.requests) == 2
     assert client.requests[1].feedback[0].kind == "test_failure"
+    assert {schema["name"] for schema in client.requests[0].tool_schemas} >= {"run_tests", "finish"}
+
+
+class CapturingFinishLLM:
+    def __init__(self) -> None:
+        self.requests: list[LLMRequest] = []
+
+    def complete(self, request: LLMRequest) -> str:
+        self.requests.append(request)
+        return '{"tool_name":"finish","arguments":{"message":"done"},"reason":"complete","expected_outcome":"stop"}'
+
+
+def test_state_machine_does_not_send_configured_runtime_secret_from_memory_to_llm(tmp_path: Path, monkeypatch):
+    env_var = "SAFELOOP_MEMORY_SECRET"
+    known_secret = "alpha-token-123"
+    monkeypatch.setenv(env_var, known_secret)
+    memory_path = tmp_path / ".safeloop" / "memory.json"
+    memory_path.parent.mkdir(parents=True)
+    memory_path.write_text(
+        json.dumps(
+            [
+                {
+                    "id": "legacy-entry",
+                    "scope": "project",
+                    "tags": ["key"],
+                    "content": f"token={known_secret}",
+                }
+            ]
+        ),
+        encoding="utf-8",
+    )
+    store = EventLogStore()
+    manager = RunManager(event_store=store)
+    client = CapturingFinishLLM()
+    machine = AgentStateMachine(run_manager=manager, event_store=store, llm_client=client)
+
+    run = machine.run("protect secrets", make_config(tmp_path, redaction_secret_env_vars=[env_var]))
+
+    assert run.status == "finished"
+    assert known_secret not in client.requests[0].memories[0].content
+    assert client.requests[0].memories[0].content == "token=[REDACTED]"
 
 
 def test_state_machine_stops_after_two_parse_errors(tmp_path: Path):
@@ -115,3 +163,30 @@ def test_state_machine_stops_at_max_steps(tmp_path: Path):
 
     assert run.status == "stopped"
     assert any(event.type == "stopped" and "max_steps" in event.payload["reason"] for event in store.list(run.id))
+
+
+def test_state_machine_marks_failed_for_corrupt_memory_store(tmp_path: Path):
+    memory_path = tmp_path / ".safeloop" / "memory.json"
+    memory_path.parent.mkdir(parents=True)
+    memory_path.write_text("{not-json", encoding="utf-8")
+    store = EventLogStore()
+    manager = RunManager(event_store=store)
+    machine = AgentStateMachine(run_manager=manager, event_store=store, llm_client=MockLLMClient(responses=[]))
+
+    run = machine.run("recover from bad memory", make_config(tmp_path))
+
+    assert run.status == "failed"
+    failed_event = next(event for event in store.list(run.id) if event.type == "failed")
+    assert failed_event.payload["reason"] == "boundary_error"
+    assert "not-json" not in str(failed_event.payload)
+
+
+def test_state_machine_marks_failed_when_mock_llm_is_exhausted(tmp_path: Path):
+    store = EventLogStore()
+    manager = RunManager(event_store=store)
+    machine = AgentStateMachine(run_manager=manager, event_store=store, llm_client=MockLLMClient(responses=[]))
+
+    run = machine.run("recover from llm failure", make_config(tmp_path))
+
+    assert run.status == "failed"
+    assert any(event.type == "failed" and event.payload["reason"] == "boundary_error" for event in store.list(run.id))

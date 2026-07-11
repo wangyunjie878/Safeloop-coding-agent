@@ -21,13 +21,19 @@ def _tool_result(tool_name: str, success: bool, summary: str, **kwargs) -> ToolR
 
 
 class MemoryStore:
-    def __init__(self, workspace: Path | str, memory_path: Path | str | None = None):
+    def __init__(
+        self,
+        workspace: Path | str,
+        memory_path: Path | str | None = None,
+        known_secrets: list[str] | None = None,
+    ):
         self._workspace = Path(workspace).expanduser().resolve()
         self._memory_path = (
             Path(memory_path).expanduser().resolve()
             if memory_path is not None
             else self._workspace / ".safeloop" / "memory.json"
         )
+        self._known_secrets = [secret for secret in (known_secrets or []) if secret]
 
     def save(
         self,
@@ -70,9 +76,10 @@ class MemoryStore:
         if not isinstance(raw_entries, list):
             raise MemoryStoreError("memory store must contain a JSON list")
         try:
-            return [MemoryEntry.model_validate(item) for item in raw_entries]
+            entries = [MemoryEntry.model_validate(item) for item in raw_entries]
         except ValidationError as exc:
             raise MemoryStoreError(f"invalid memory entry: {exc}") from exc
+        return [self._redact_entry(entry) for entry in entries]
 
     def clear(self) -> None:
         if self._memory_path.exists():
@@ -83,11 +90,14 @@ class MemoryStore:
         payload = [entry.model_dump(mode="json") for entry in entries]
         self._memory_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
-    @staticmethod
-    def _reject_secret_content(content: str) -> None:
-        redacted = redact_secrets(content)
+    def _reject_secret_content(self, content: str) -> None:
+        redacted = redact_secrets(content, known_secrets=self._known_secrets)
         if redacted != content:
             raise MemoryStoreError("memory content appears to contain a secret")
+
+    def _redact_entry(self, entry: MemoryEntry) -> MemoryEntry:
+        content = redact_secrets(entry.content, known_secrets=self._known_secrets)
+        return entry.model_copy(update={"content": content})
 
 
 class MemoryTools:
