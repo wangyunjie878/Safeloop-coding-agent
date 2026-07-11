@@ -1439,7 +1439,7 @@ Update `PLAN.md` Task 10 with the commit hash and append an `AGENT_LOG.md` entry
 
 ### Task 11: Agent State Machine Loop
 
-**Status:** completed in commits `85eec76` and `fe05a47`; focused state-machine tests `5 passed`, full suite `121 passed`. Reviewer Nietzsche approved with no Critical or Important issues; Minor note recorded for possible future cleanup of duplicate `llm_action` events.
+**Status:** completed in commits `85eec76`, `fe05a47`, and review-fix `54da841`; review-fix focused memory/state-machine tests `15 passed`, full suite `125 passed`. The review fix adds runtime configured-secret filtering for memory, terminal failure handling for memory/LLM boundary errors, and dispatcher schemas on each `LLMRequest`. The optional duplicate `llm_action` event cleanup remains deferred.
 
 **Goal:** 实现核心 agent loop：context -> LLM action -> parse -> guard -> dispatch -> observe -> feedback -> stop/continue。
 
