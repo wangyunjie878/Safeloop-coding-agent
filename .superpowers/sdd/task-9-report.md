@@ -3,6 +3,7 @@ Status: DONE_WITH_CONCERNS
 Commit hash(es):
 - `f7b48df` (`feat(task-9): add feedback classifier`)
 - `28e483b` (`docs(task-9): record feedback classifier traceability`)
+- `760ec1e` (`docs(task-9): fix feedback report contract`)
 
 RED test command and observed failure:
 
