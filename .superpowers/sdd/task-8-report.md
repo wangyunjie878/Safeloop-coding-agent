@@ -79,7 +79,7 @@ Observed result:
 ## Review Fix
 
 - Reviewer Hubble found one Important process issue: the report status used a non-contract value and the process hash-backfill commit was still recorded as pending.
-- Controller corrected the report status to `DONE_WITH_CONCERNS`, recorded `8ca251f`, and added dispatcher-level `run_command` timeout forwarding coverage for the reviewer's Minor note.
+- Controller corrected the report status to `DONE_WITH_CONCERNS`, recorded `8ca251f`, and added dispatcher-level `run_command` timeout forwarding coverage for the reviewer's Minor note in commit `e631cc3`.
 
 ## Concerns
 

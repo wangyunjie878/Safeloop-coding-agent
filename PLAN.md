@@ -1066,7 +1066,7 @@ Update `PLAN.md` Task 7 with the commit hash and append an `AGENT_LOG.md` entry.
 
 **Goal:** 用统一 dispatcher 注册、校验和调用所有工具，落实主要贡献“工具分发与执行状态机设计”的工具分发部分。
 
-**Status:** completed in commit `4c43dbd`; review fix added in pending commit; focused dispatcher tests `13 passed`, full suite `100 passed`.
+**Status:** completed in commit `4c43dbd`; review fix added in commit `e631cc3`; focused dispatcher tests `13 passed`, full suite `100 passed`.
 
 **Files:**
 - Create: `safeloop/tools/dispatcher.py`
@@ -1202,7 +1202,7 @@ git commit -m "feat(task-8): add tool dispatcher"
 
 Update `PLAN.md` Task 8 with the commit hash and append an `AGENT_LOG.md` entry.
 
-**Task 8 Evidence:** RED regression `test_memory_tools_report_unavailable_without_arguments` failed because `save_memory` reported missing `content`; GREEN focused verification `python -m pytest tests/test_dispatcher.py -v` = `12 passed`; full verification `python -m pytest -v` = `99 passed`. Reviewer Hubble found one Important process issue, corrected in pending review-fix commit; final focused verification `python -m pytest tests/test_dispatcher.py -v` = `13 passed`; final full verification `python -m pytest -v` = `100 passed`. Implementation commit: `4c43dbd`.
+**Task 8 Evidence:** RED regression `test_memory_tools_report_unavailable_without_arguments` failed because `save_memory` reported missing `content`; GREEN focused verification `python -m pytest tests/test_dispatcher.py -v` = `12 passed`; full verification `python -m pytest -v` = `99 passed`. Reviewer Hubble found one Important process issue, corrected in review-fix commit `e631cc3`; final focused verification `python -m pytest tests/test_dispatcher.py -v` = `13 passed`; final full verification `python -m pytest -v` = `100 passed`. Implementation commit: `4c43dbd`.
 
 ---
 
