@@ -146,6 +146,25 @@ def test_state_machine_seeds_injected_event_store_with_runtime_secrets(tmp_path:
     assert "[REDACTED]" in state_events_text
 
 
+def test_state_machine_can_persist_memory_through_dispatcher(tmp_path: Path):
+    store = EventLogStore()
+    manager = RunManager(event_store=store)
+    client = MockLLMClient(
+        responses=[
+            '{"tool_name":"save_memory","arguments":{"content":"Run pytest before finishing."},"reason":"remember","expected_outcome":"memory saved"}',
+            '{"tool_name":"finish","arguments":{"message":"done"},"reason":"remembered","expected_outcome":"stop"}',
+        ]
+    )
+    machine = AgentStateMachine(run_manager=manager, event_store=store, llm_client=client)
+
+    run = machine.run("remember project workflow", make_config(tmp_path))
+
+    assert run.status == "finished"
+    memory_path = tmp_path / ".safeloop" / "memory.json"
+    assert memory_path.exists()
+    assert "Run pytest before finishing." in memory_path.read_text(encoding="utf-8")
+
+
 class CapturingFinishLLM:
     def __init__(self) -> None:
         self.requests: list[LLMRequest] = []

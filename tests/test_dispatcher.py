@@ -192,33 +192,34 @@ def test_finish_returns_success_and_message_in_stdout(tmp_path: Path):
     assert result.stdout == "done now"
 
 
-def test_memory_tools_report_unavailable(tmp_path: Path):
+def test_memory_tools_persist_and_load_round_trip(tmp_path: Path):
     dispatcher = make_dispatcher(tmp_path)
 
     save_result = dispatcher.dispatch(
         AgentAction(
             tool_name="save_memory",
-            arguments={"content": "x"},
+            arguments={"content": "Run pytest before finishing."},
             reason="save",
-            expected_outcome="failure",
+            expected_outcome="memory saved",
         )
     )
     load_result = dispatcher.dispatch(
         AgentAction(
             tool_name="load_memory",
-            arguments={"query": "x"},
+            arguments={"query": "pytest"},
             reason="load",
-            expected_outcome="failure",
+            expected_outcome="memory loaded",
         )
     )
 
-    assert save_result.success is False
-    assert save_result.summary == "memory store unavailable"
-    assert load_result.success is False
-    assert load_result.summary == "memory store unavailable"
+    assert save_result.success is True
+    assert save_result.summary == "memory saved"
+    assert (tmp_path / ".safeloop" / "memory.json").exists()
+    assert load_result.success is True
+    assert "Run pytest before finishing." in load_result.stdout
 
 
-def test_memory_tools_report_unavailable_without_arguments(tmp_path: Path):
+def test_memory_tools_require_content_for_save_and_allow_empty_load(tmp_path: Path):
     dispatcher = make_dispatcher(tmp_path)
 
     save_result = dispatcher.dispatch(
@@ -239,9 +240,9 @@ def test_memory_tools_report_unavailable_without_arguments(tmp_path: Path):
     )
 
     assert save_result.success is False
-    assert save_result.summary == "memory store unavailable"
-    assert load_result.success is False
-    assert load_result.summary == "memory store unavailable"
+    assert "content is required" in save_result.summary
+    assert load_result.success is True
+    assert load_result.summary == "loaded 0 memory entries"
 
 
 def test_dispatch_catches_tool_exceptions(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):

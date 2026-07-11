@@ -6,6 +6,7 @@ from uuid import uuid4
 
 from pydantic import ValidationError
 
+from safeloop.config import collect_runtime_redaction_secrets
 from safeloop.models import MemoryEntry, ToolResult
 from safeloop.security.redaction import redact_secrets
 
@@ -126,9 +127,51 @@ class MemoryStore:
 class MemoryTools:
     def __init__(self, context: ToolContext):
         self._context = context
+        self._store = MemoryStore(
+            context.config.workspace,
+            known_secrets=collect_runtime_redaction_secrets(context.config),
+        )
 
     def save_memory(self, content: str) -> ToolResult:
-        return _tool_result("save_memory", False, "memory store unavailable")
+        if not content.strip():
+            return _tool_result("save_memory", False, "content is required")
+        try:
+            entry = self._store.save(
+                scope="project",
+                tags=["agent"],
+                content=content,
+                source_run_id=self._context.run_id,
+            )
+        except MemoryStoreError as exc:
+            return _tool_result("save_memory", False, str(exc))
+        return _tool_result(
+            "save_memory",
+            True,
+            "memory saved",
+            stdout=json.dumps(entry.model_dump(mode="json"), ensure_ascii=False),
+        )
 
     def load_memory(self, query: str) -> ToolResult:
-        return _tool_result("load_memory", False, "memory store unavailable")
+        try:
+            entries = self._store.query(scope="project")
+        except MemoryStoreError as exc:
+            return _tool_result("load_memory", False, str(exc))
+        filtered = self._filter_entries(entries, query)
+        return _tool_result(
+            "load_memory",
+            True,
+            f"loaded {len(filtered)} memory entries",
+            stdout=json.dumps([entry.model_dump(mode="json") for entry in filtered], ensure_ascii=False),
+        )
+
+    @staticmethod
+    def _filter_entries(entries: list[MemoryEntry], query: str) -> list[MemoryEntry]:
+        needle = query.casefold().strip()
+        if not needle:
+            return entries
+        results: list[MemoryEntry] = []
+        for entry in entries:
+            haystack = " ".join([entry.content, *entry.tags, entry.source_run_id or ""]).casefold()
+            if needle in haystack:
+                results.append(entry)
+        return results
