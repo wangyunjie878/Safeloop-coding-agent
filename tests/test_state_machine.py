@@ -96,6 +96,33 @@ def test_state_machine_feeds_test_failure_back_to_next_llm_request(tmp_path: Pat
     assert {schema["name"] for schema in client.requests[0].tool_schemas} >= {"run_tests", "finish"}
 
 
+def test_state_machine_redacts_configured_runtime_secret_from_feedback(tmp_path: Path, monkeypatch):
+    env_var = "SAFELOOP_FEEDBACK_SECRET"
+    known_secret = "alpha-token-123"
+    monkeypatch.setenv(env_var, known_secret)
+    store = EventLogStore()
+    manager = RunManager(event_store=store)
+    client = FeedbackAwareLLM()
+    machine = AgentStateMachine(run_manager=manager, event_store=store, llm_client=client)
+    config = make_config(
+        tmp_path,
+        test_command=(
+            "python -c \"import sys; "
+            "print('FAILED test_secret.py::test_x - alpha-token-123'); "
+            "sys.exit(1)\""
+        ),
+        redaction_secret_env_vars=[env_var],
+    )
+
+    run = machine.run("protect feedback secrets", config)
+
+    assert run.status == "finished"
+    feedback = client.requests[1].feedback[0]
+    assert known_secret not in feedback.summary
+    assert known_secret not in feedback.raw_excerpt
+    assert "[REDACTED]" in feedback.raw_excerpt
+
+
 class CapturingFinishLLM:
     def __init__(self) -> None:
         self.requests: list[LLMRequest] = []

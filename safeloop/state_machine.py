@@ -38,9 +38,10 @@ class AgentStateMachine:
         self._run_manager.update_status(run.id, "running")
         feedback: list[Feedback] = []
         parse_errors = 0
+        known_secrets = collect_runtime_redaction_secrets(config)
         memory_store = MemoryStore(
             config.workspace,
-            known_secrets=collect_runtime_redaction_secrets(config),
+            known_secrets=known_secrets,
         )
 
         try:
@@ -61,7 +62,7 @@ class AgentStateMachine:
                     action = parse_action(raw_action, dispatcher.available_tools())
                 except ActionParseError as exc:
                     parse_errors += 1
-                    item = self._feedback_classifier.from_parse_error(str(exc))
+                    item = self._feedback_classifier.from_parse_error(str(exc), known_secrets=known_secrets)
                     feedback.append(item)
                     self._append_feedback(run.id, step, item)
                     if parse_errors >= 2:
@@ -73,12 +74,12 @@ class AgentStateMachine:
                 decision = GuardrailEngine(config).evaluate(action)
                 self._append_guardrail(run.id, step, decision)
                 if decision.decision == "deny":
-                    item = self._feedback_classifier.from_guardrail(decision)
+                    item = self._feedback_classifier.from_guardrail(decision, known_secrets=known_secrets)
                     feedback.append(item)
                     self._append_feedback(run.id, step, item)
                     continue
                 if decision.decision == "require_approval":
-                    item = self._feedback_classifier.from_guardrail(decision)
+                    item = self._feedback_classifier.from_guardrail(decision, known_secrets=known_secrets)
                     feedback.append(item)
                     self._append_feedback(run.id, step, item)
                     continue
@@ -89,7 +90,7 @@ class AgentStateMachine:
                     self._append_event(run.id, step, "finished", {"message": result.stdout})
                     return self._run_manager.update_status(run.id, "finished", reason="finish")
                 if not result.success:
-                    item = self._feedback_classifier.from_tool_result(result)
+                    item = self._feedback_classifier.from_tool_result(result, known_secrets=known_secrets)
                     feedback.append(item)
                     self._append_feedback(run.id, step, item)
 

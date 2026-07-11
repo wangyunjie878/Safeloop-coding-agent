@@ -8,10 +8,10 @@ class FeedbackClassifier:
     def __init__(self, max_excerpt_chars: int = 1200):
         self._max_excerpt_chars = max_excerpt_chars
 
-    def from_tool_result(self, result: ToolResult) -> Feedback:
+    def from_tool_result(self, result: ToolResult, known_secrets: list[str] | None = None) -> Feedback:
         combined_output = "\n".join(part for part in (result.stdout, result.stderr) if part)
         source_text = combined_output or result.summary
-        raw_excerpt, truncated = self._excerpt(source_text)
+        raw_excerpt, truncated = self._excerpt(source_text, known_secrets)
         summary = result.summary or "tool result"
 
         if "timeout" in result.summary.casefold():
@@ -37,13 +37,13 @@ class FeedbackClassifier:
 
         return Feedback(
             kind=kind,
-            summary=self._redact_text(summary),
+            summary=self._redact_text(summary, known_secrets),
             raw_excerpt=raw_excerpt,
-            suggested_next_context=self._redact_text(next_context),
+            suggested_next_context=self._redact_text(next_context, known_secrets),
         )
 
-    def from_parse_error(self, message: str) -> Feedback:
-        raw_excerpt, truncated = self._excerpt(message)
+    def from_parse_error(self, message: str, known_secrets: list[str] | None = None) -> Feedback:
+        raw_excerpt, truncated = self._excerpt(message, known_secrets)
         summary = "parse error: invalid JSON action"
         if message:
             summary = f"parse error: {message}"
@@ -53,14 +53,14 @@ class FeedbackClassifier:
             next_context = f"{next_context} The raw excerpt was truncated."
         return Feedback(
             kind="parse_error",
-            summary=self._redact_text(summary),
+            summary=self._redact_text(summary, known_secrets),
             raw_excerpt=raw_excerpt,
-            suggested_next_context=self._redact_text(next_context),
+            suggested_next_context=self._redact_text(next_context, known_secrets),
         )
 
-    def from_guardrail(self, decision: GuardrailDecision) -> Feedback:
+    def from_guardrail(self, decision: GuardrailDecision, known_secrets: list[str] | None = None) -> Feedback:
         raw_text = "\n".join(part for part in (decision.reason, decision.matched_rule) if part)
-        raw_excerpt, truncated = self._excerpt(raw_text)
+        raw_excerpt, truncated = self._excerpt(raw_text, known_secrets)
         if decision.decision == "deny":
             kind = "guardrail_blocked"
             summary = f"guardrail blocked action: {decision.reason}"
@@ -74,13 +74,13 @@ class FeedbackClassifier:
             next_context = f"{next_context} The raw excerpt was truncated."
         return Feedback(
             kind=kind,
-            summary=self._redact_text(summary),
+            summary=self._redact_text(summary, known_secrets),
             raw_excerpt=raw_excerpt,
-            suggested_next_context=self._redact_text(next_context),
+            suggested_next_context=self._redact_text(next_context, known_secrets),
         )
 
-    def _excerpt(self, text: str) -> tuple[str, bool]:
-        redacted = self._redact_text(text)
+    def _excerpt(self, text: str, known_secrets: list[str] | None = None) -> tuple[str, bool]:
+        redacted = self._redact_text(text, known_secrets)
         if len(redacted) <= self._max_excerpt_chars:
             return redacted, False
         return redacted[: self._max_excerpt_chars], True
@@ -90,5 +90,5 @@ class FeedbackClassifier:
         return "assertionerror" in text.casefold() or "failed" in text.casefold()
 
     @staticmethod
-    def _redact_text(text: str) -> str:
-        return str(redact_secrets(text))
+    def _redact_text(text: str, known_secrets: list[str] | None = None) -> str:
+        return str(redact_secrets(text, known_secrets=known_secrets))
