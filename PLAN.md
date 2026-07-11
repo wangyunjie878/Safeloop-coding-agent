@@ -815,7 +815,7 @@ Task 5 review-fix commit: `5a48883` (`fix(task-5): guard generic action argument
 - `patch_file()` 要求 `old` 在文件中出现一次且仅一次；否则返回失败，不写入。
 - `list_files()` 不列出 `.git`, `.venv`, `__pycache__`, `.pytest_cache`, `.safeloop`。
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # tests/test_file_tools.py
@@ -887,36 +887,48 @@ def test_read_file_rejects_too_large_file(tmp_path: Path):
     assert "too large" in result.summary
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_file_tools.py -v`
 
-Expected: FAIL with missing `FileTools`.
+Observed RED:
 
-- [ ] **Step 3: Write minimal implementation**
+```text
+ModuleNotFoundError: No module named 'safeloop.tools'
+```
+
+- [x] **Step 3: Write minimal implementation**
 
 Implement `ToolContext` and file operations. Reuse path boundary checks from Task 5.
 
-- [ ] **Step 4: Run focused tests**
+- [x] **Step 4: Run focused tests**
 
 Run: `python -m pytest tests/test_file_tools.py -v`
 
-Expected: PASS.
+Observed GREEN: `11 passed in 0.49s`
 
-- [ ] **Step 5: Run full tests**
+- [x] **Step 5: Run full tests**
 
 Run: `make test`
 
-Expected: PASS.
+Windows fallback used here:
 
-- [ ] **Step 6: Commit and log**
+```bash
+python -m pytest -v
+```
+
+Observed GREEN: `78 passed in 3.89s`
+
+- [x] **Step 6: Commit and log**
 
 ```bash
 git add safeloop/tools/base.py safeloop/tools/files.py tests/test_file_tools.py PLAN.md AGENT_LOG.md
 git commit -m "feat(task-6): add workspace bounded file tools"
 ```
 
-Update `PLAN.md` Task 6 with the commit hash and append an `AGENT_LOG.md` entry.
+Implementation commit: `54c806d` (`feat(task-6): add workspace bounded file tools`).
+
+Updated `PLAN.md` Task 6 with the implementation hash and appended the Task 6 `AGENT_LOG.md` entry.
 
 ---
 
