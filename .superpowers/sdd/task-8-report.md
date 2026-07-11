@@ -73,7 +73,7 @@ Observed result:
 
 ## Commits
 
-- Implementation commit: pending
+- Implementation commit: `4c43dbd` (`feat(task-8): add tool dispatcher`)
 - Process hash-backfill commit: pending
 
 ## Concerns
