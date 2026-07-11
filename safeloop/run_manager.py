@@ -70,6 +70,13 @@ class RunManager:
         )
         return run.model_copy()
 
+    def update_step(self, run_id: str, step: int) -> RunRecord:
+        run = self._runs.get(run_id)
+        if run is None:
+            raise RunNotFoundError(f"run not found: {run_id}")
+        run.current_step = step
+        return run.model_copy()
+
     def get_run(self, run_id: str) -> RunRecord:
         run = self._runs.get(run_id)
         if run is None:
