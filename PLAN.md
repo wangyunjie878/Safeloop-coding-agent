@@ -1439,7 +1439,7 @@ Update `PLAN.md` Task 10 with the commit hash and append an `AGENT_LOG.md` entry
 
 ### Task 11: Agent State Machine Loop
 
-**Status:** completed in commits `85eec76`, `fe05a47`, and review-fix `54da841`; review-fix focused memory/state-machine tests `15 passed`, full suite `125 passed`. The review fix adds runtime configured-secret filtering for memory, terminal failure handling for memory/LLM boundary errors, and dispatcher schemas on each `LLMRequest`. Follow-up branch review fix `173f098` ensures the real DeepSeek client receives the same feedback/memory/event/tool-schema context as mock clients. The optional duplicate `llm_action` event cleanup remains deferred.
+**Status:** completed in commits `85eec76`, `fe05a47`, and review-fixes `54da841`, `173f098`, and `44a2fb7`; latest focused DeepSeek/feedback/state-machine tests `23 passed`, full suite `128 passed`. The review fixes add runtime configured-secret filtering for memory and feedback, terminal failure handling for memory/LLM boundary errors, dispatcher schemas on each `LLMRequest`, and DeepSeek payload propagation for feedback/memory/events/tool schemas. The optional duplicate `llm_action` event cleanup remains deferred.
 
 **Goal:** 实现核心 agent loop：context -> LLM action -> parse -> guard -> dispatch -> observe -> feedback -> stop/continue。
 

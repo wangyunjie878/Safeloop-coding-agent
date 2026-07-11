@@ -46,3 +46,9 @@ Follow-up re-review fix:
 - Commit `173f098` (`fix(pr-feedback): send agent context to deepseek`) added a RED-first `httpx.MockTransport` regression and implementation that serializes redacted SafeLoop context into the DeepSeek chat-completions payload.
 - RED: `python -m pytest tests/test_deepseek_client.py -v` failed with `IndexError: list index out of range` because the context message was missing.
 - GREEN: `python -m pytest tests/test_deepseek_client.py -v` -> `6 passed`; `python -m pytest tests/test_deepseek_client.py tests/test_memory.py tests/test_state_machine.py -v` -> `21 passed`; `python -m pytest -v` -> `126 passed`.
+
+Second follow-up re-review fix:
+- Reviewer Mill found configured runtime secrets could still leak through `Feedback` into the next LLM request.
+- Commit `44a2fb7` (`fix(pr-feedback): redact configured secrets in feedback`) threads runtime known secrets into `FeedbackClassifier` for tool-result, parse-error, and guardrail feedback.
+- RED: `python -m pytest tests/test_feedback.py tests/test_state_machine.py -v` failed with `TypeError: FeedbackClassifier.from_tool_result() got an unexpected keyword argument 'known_secrets'` and a state-machine assertion showing `alpha-token-123` in `feedback.raw_excerpt`.
+- GREEN: `python -m pytest tests/test_feedback.py tests/test_state_machine.py -v` -> `17 passed`; `python -m pytest tests/test_deepseek_client.py tests/test_feedback.py tests/test_state_machine.py -v` -> `23 passed`; `python -m pytest -v` -> `128 passed`.
