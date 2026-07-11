@@ -7,6 +7,7 @@ import pytest
 
 from safeloop.llm import LLMRequest
 from safeloop.llm.deepseek import DeepSeekClient, DeepSeekClientError
+from safeloop.models import Event, Feedback, MemoryEntry
 
 
 def test_deepseek_client_posts_expected_payload_and_returns_content():
@@ -52,6 +53,58 @@ def test_deepseek_client_accepts_explicit_model_override():
     client = DeepSeekClient(api_key="sk-test", model="deepseek-v4-pro", http_client=http_client)
 
     assert client.complete(LLMRequest(task="Explain", feedback=[], memories=[], events=[])) == "ok"
+
+
+def test_deepseek_client_serializes_redacted_agent_context():
+    seen: dict[str, object] = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen["body"] = json.loads(request.content.decode("utf-8"))
+        return httpx.Response(200, json={"choices": [{"message": {"content": "ok"}}]})
+
+    http_client = httpx.Client(transport=httpx.MockTransport(handler))
+    client = DeepSeekClient(api_key="sk-test", http_client=http_client)
+    request = LLMRequest(
+        task="Fix the failing test",
+        feedback=[
+            Feedback(
+                kind="test_failure",
+                summary="pytest failed",
+                raw_excerpt="AssertionError",
+                suggested_next_context="inspect calculator.py",
+            )
+        ],
+        memories=[
+            MemoryEntry(
+                id="memory-1",
+                scope="project",
+                tags=["tests"],
+                content="Use pytest for this project.",
+            )
+        ],
+        events=[
+            Event(
+                run_id="run-1",
+                step=1,
+                type="tool_result",
+                payload={"summary": "failed", "note": "Do not expose sk-live-secret12345678."},
+            )
+        ],
+        tool_schemas=[{"name": "run_tests", "arguments": {}}],
+    )
+
+    assert client.complete(request) == "ok"
+
+    body = seen["body"]
+    context_message = body["messages"][2]
+    context_text = context_message["content"]
+    assert context_message["role"] == "user"
+    assert "test_failure" in context_text
+    assert "Use pytest" in context_text
+    assert "tool_result" in context_text
+    assert "run_tests" in context_text
+    assert "sk-live-secret12345678" not in context_text
+    assert "[REDACTED]" in context_text
 
 
 def test_deepseek_client_raises_clear_error_on_non_2xx_response():
