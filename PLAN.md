@@ -937,6 +937,8 @@ The review fix narrowed `list_files()` to exclude only `.git`, `.venv`, `__pycac
 
 ### Task 7: Command and Test Tools
 
+**Status:** DONE in commit `PENDING_TASK_7_HASH` (`feat(task-7): add command and test tools`). Implementer subagent Lovelace wrote the tests and implementation; controller completed verification, process documentation, and commit after the subagent timed out before reporting.
+
 **Goal:** 在 workspace 内执行允许的命令和测试命令，收集 exit code、stdout、stderr、耗时和超时结果。
 
 **Files:**
@@ -959,7 +961,7 @@ The review fix narrowed `list_files()` to exclude only `.git`, `.venv`, `__pycac
 - timeout 返回 `success=False`, `summary` 包含 `timeout`。
 - `run_tests()` 使用 `config.test_command`。
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # tests/test_command_tools.py
@@ -1019,29 +1021,37 @@ def test_run_command_reports_timeout(tmp_path: Path):
     assert "timeout" in result.summary.lower()
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_command_tools.py -v`
 
 Expected: FAIL with missing `CommandTools`.
 
-- [ ] **Step 3: Write minimal implementation**
+Observed RED:
+
+```text
+ModuleNotFoundError: No module named 'safeloop.tools.commands'
+```
+
+- [x] **Step 3: Write minimal implementation**
 
 Implement command execution with guardrail checks, timeout handling, output truncation and standardized `ToolResult`.
 
-- [ ] **Step 4: Run focused tests**
+- [x] **Step 4: Run focused tests**
 
 Run: `python -m pytest tests/test_command_tools.py -v`
 
 Expected: PASS.
 
-- [ ] **Step 5: Run full tests**
+Observed GREEN: `7 passed in 3.26s`
 
-Run: `make test`
+- [x] **Step 5: Run full tests**
 
-Expected: PASS.
+Run: `python -m pytest -v`
 
-- [ ] **Step 6: Commit and log**
+Observed GREEN: `86 passed in 6.75s`
+
+- [x] **Step 6: Commit and log**
 
 ```bash
 git add safeloop/tools/commands.py safeloop/tools/base.py tests/test_command_tools.py PLAN.md AGENT_LOG.md
