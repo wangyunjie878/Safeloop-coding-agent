@@ -1,6 +1,6 @@
 # Task 8 Report: Tool Dispatcher and Tool Registry
 
-Status: DONE_WITH_CONTROLLER_INTERVENTION
+Status: DONE_WITH_CONCERNS
 
 ## Context
 
@@ -74,7 +74,12 @@ Observed result:
 ## Commits
 
 - Implementation commit: `4c43dbd` (`feat(task-8): add tool dispatcher`)
-- Process hash-backfill commit: pending
+- Process hash-backfill commit: `8ca251f` (`docs(task-8): record dispatcher traceability`)
+
+## Review Fix
+
+- Reviewer Hubble found one Important process issue: the report status used a non-contract value and the process hash-backfill commit was still recorded as pending.
+- Controller corrected the report status to `DONE_WITH_CONCERNS`, recorded `8ca251f`, and added dispatcher-level `run_command` timeout forwarding coverage for the reviewer's Minor note.
 
 ## Concerns
 

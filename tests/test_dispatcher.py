@@ -110,6 +110,22 @@ def test_dispatch_routes_run_tests(tmp_path: Path):
     assert result.stdout == "ok\n"
 
 
+def test_dispatch_routes_run_command_timeout_argument(tmp_path: Path):
+    dispatcher = make_dispatcher(tmp_path)
+
+    result = dispatcher.dispatch(
+        AgentAction(
+            tool_name="run_command",
+            arguments={"command": 'python -c "import time; time.sleep(1)"', "timeout_seconds": 0.01},
+            reason="run command",
+            expected_outcome="timeout",
+        )
+    )
+
+    assert result.success is False
+    assert "timeout after 0.01 seconds" in result.summary
+
+
 def test_unknown_tool_returns_failed_result(tmp_path: Path):
     dispatcher = make_dispatcher(tmp_path)
 
