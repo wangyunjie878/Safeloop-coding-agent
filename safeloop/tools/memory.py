@@ -105,6 +105,7 @@ class MemoryStore:
                 raise MemoryStoreError("memory entry appears to contain a secret")
 
     def _redact_entry(self, entry: MemoryEntry) -> MemoryEntry:
+        entry_id = str(redact_secrets(entry.id, known_secrets=self._known_secrets))
         content = redact_secrets(entry.content, known_secrets=self._known_secrets)
         tags = [str(redact_secrets(tag, known_secrets=self._known_secrets)) for tag in entry.tags]
         source_run_id = (
@@ -112,7 +113,14 @@ class MemoryStore:
             if entry.source_run_id is not None
             else None
         )
-        return entry.model_copy(update={"content": content, "tags": tags, "source_run_id": source_run_id})
+        return entry.model_copy(
+            update={
+                "id": entry_id,
+                "content": content,
+                "tags": tags,
+                "source_run_id": source_run_id,
+            }
+        )
 
 
 class MemoryTools:

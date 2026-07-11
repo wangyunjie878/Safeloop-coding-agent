@@ -93,7 +93,7 @@ def test_memory_store_rejects_secret_metadata_and_redacts_legacy_metadata(tmp_pa
         json.dumps(
             [
                 {
-                    "id": "legacy-entry",
+                    "id": known_secret,
                     "scope": "project",
                     "tags": ["tests", known_secret],
                     "content": "safe content",
@@ -105,6 +105,7 @@ def test_memory_store_rejects_secret_metadata_and_redacts_legacy_metadata(tmp_pa
     )
 
     entry = store.load_all()[0]
+    assert entry.id == "[REDACTED]"
     assert known_secret not in entry.tags
     assert "[REDACTED]" in entry.tags
     assert entry.source_run_id == "[REDACTED]"
