@@ -64,3 +64,9 @@ Fourth follow-up re-review fix:
 - Commit `c3d1645` (`fix(pr-feedback): redact legacy memory ids`) redacts legacy `MemoryEntry.id` values during load.
 - RED: `python -m pytest tests/test_memory.py -v` failed because `entry.id` still equaled `alpha-token-123`.
 - GREEN: `python -m pytest tests/test_memory.py -v` -> `8 passed`; `python -m pytest tests/test_memory.py tests/test_deepseek_client.py tests/test_state_machine.py -v` -> `25 passed`; `python -m pytest -v` -> `131 passed`.
+
+Fifth follow-up re-review fix:
+- Reviewer Banach found dispatcher-advertised `save_memory` and `load_memory` still returned `memory store unavailable`, so the state-machine loop could not actually persist project memory through the tool dispatcher.
+- Commit `45aeb08` (`fix(pr-feedback): wire memory tools to store`) wires `MemoryTools` to `MemoryStore` with configured runtime-secret redaction, adds dispatcher round-trip coverage, and proves the state machine can persist memory via `save_memory`.
+- RED: `python -m pytest tests/test_dispatcher.py tests/test_state_machine.py -v` failed with 3 expected failures: `save_memory` unavailable, missing `content is required` validation, and no state-machine memory file persisted.
+- GREEN: `python -m pytest tests/test_dispatcher.py tests/test_state_machine.py -v` -> `24 passed`; `python -m pytest -v` -> `132 passed`.
