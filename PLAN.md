@@ -1060,7 +1060,7 @@ git commit -m "feat(task-7): add command and test tools"
 
 Update `PLAN.md` Task 7 with the commit hash and append an `AGENT_LOG.md` entry.
 
-**Branch Review Fix:** reviewer Hooke found that command guardrails could be bypassed by extra whitespace and that `OSError` escaped as `CommandToolError` instead of a structured `ToolResult`. RED tests `test_guardrail_normalizes_command_whitespace_before_matching`, `test_run_command_blocks_whitespace_variant_without_execution`, and `test_run_command_returns_structured_result_for_oserror` failed first; GREEN focused verification `python -m pytest tests/test_guardrails.py tests/test_command_tools.py -v` = `19 passed`; full verification `python -m pytest -v` = `103 passed`. Commit: pending.
+**Branch Review Fix:** reviewer Hooke found that command guardrails could be bypassed by extra whitespace and that `OSError` escaped as `CommandToolError` instead of a structured `ToolResult`. RED tests `test_guardrail_normalizes_command_whitespace_before_matching`, `test_run_command_blocks_whitespace_variant_without_execution`, and `test_run_command_returns_structured_result_for_oserror` failed first; GREEN focused verification `python -m pytest tests/test_guardrails.py tests/test_command_tools.py -v` = `19 passed`; full verification `python -m pytest -v` = `103 passed`. Commit: `f58d2f5`.
 
 ---
 
