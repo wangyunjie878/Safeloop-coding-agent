@@ -58,3 +58,9 @@ Third follow-up re-review fix:
 - Commit `5d890ca` (`fix(pr-feedback): close configured secret context leaks`) rejects/redacts configured secrets across all `MemoryEntry` serializable fields, carries `known_secrets` through `LLMRequest` into DeepSeek outbound messages, and seeds the state machine's injected event store directly.
 - RED: `python -m pytest tests/test_memory.py tests/test_deepseek_client.py tests/test_state_machine.py -v` failed for secret metadata not raising, `LLMRequest.known_secrets` being forbidden, and split event-store payloads still containing `alpha-token-123`.
 - GREEN: `python -m pytest tests/test_memory.py tests/test_deepseek_client.py tests/test_state_machine.py -v` -> `25 passed`; `python -m pytest -v` -> `131 passed`.
+
+Fourth follow-up re-review fix:
+- Reviewer Feynman found legacy memory `id` values could still carry configured secrets into `LLMRequest.memories`.
+- Commit `c3d1645` (`fix(pr-feedback): redact legacy memory ids`) redacts legacy `MemoryEntry.id` values during load.
+- RED: `python -m pytest tests/test_memory.py -v` failed because `entry.id` still equaled `alpha-token-123`.
+- GREEN: `python -m pytest tests/test_memory.py -v` -> `8 passed`; `python -m pytest tests/test_memory.py tests/test_deepseek_client.py tests/test_state_machine.py -v` -> `25 passed`; `python -m pytest -v` -> `131 passed`.
