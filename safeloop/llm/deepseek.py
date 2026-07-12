@@ -53,7 +53,12 @@ class DeepSeekClient:
         messages = [
             {
                 "role": "system",
-                "content": "You are SafeLoop. Respond with JSON actions only.",
+                "content": (
+                    "You are SafeLoop, a coding agent harness. Respond with exactly one JSON object "
+                    "and no Markdown. The JSON object must contain tool_name, arguments, reason, "
+                    "and expected_outcome. Choose one available tool from the provided tool_schemas. "
+                    "Use feedback from failed tools or tests to decide the next action."
+                ),
             },
             {"role": "user", "content": str(redact_secrets(request.task, known_secrets=request.known_secrets))},
         ]

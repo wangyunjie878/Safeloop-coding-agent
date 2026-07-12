@@ -20,6 +20,33 @@ Run the deterministic mechanism demo:
 python -m safeloop demo
 ```
 
+Run one CLI task with the offline mock LLM:
+
+```bash
+python -m safeloop run --config samples/python_buggy_calculator/safeloop.yml --task "fix calculator" --llm mock
+```
+
+Configure a user-owned DeepSeek key, then run a real-model task:
+
+```bash
+python -m safeloop credentials set --provider deepseek
+python -m safeloop run --config safeloop.yml --task "fix the failing tests" --llm deepseek
+```
+
+Start the simple opencode-style terminal loop:
+
+```bash
+python -m safeloop chat --config safeloop.yml --llm deepseek
+```
+
+For machines where OS keyring is not available, use an environment variable or a local `.env` file that is never committed:
+
+```bash
+set DEEPSEEK_API_KEY=your-key-here
+python -m safeloop chat --config safeloop.yml --llm deepseek --credential-backend env
+python -m safeloop chat --config safeloop.yml --llm deepseek --credential-backend dotenv --dotenv-path .env
+```
+
 Start the WebUI locally:
 
 ```bash
@@ -40,7 +67,7 @@ The container starts the WebUI on `0.0.0.0:8000` in mock mode.
 
 ## Credential Security
 
-The demo, tests, and Docker startup use the mock LLM. Keep real provider keys outside source control, prefer the credential manager or environment injection, and never place secrets in config files, logs, images, or CI output.
+The demo, tests, CI, and Docker startup use the mock LLM by default. Real DeepSeek usage is opt-in and uses user-provided credentials. Keep provider keys outside source control, prefer the credential manager or environment injection, and never place secrets in config files, logs, images, or CI output.
 
 ## Safety Boundaries
 
@@ -69,4 +96,4 @@ Workflow definitions are checked in at `.github/workflows/ci.yml` and `.gitlab-c
 
 ## Known Limits
 
-The current command path supports the mock LLM only. The WebUI is intentionally minimal, and Docker distribution is local build/run support rather than a published registry image or hosted service.
+The CLI supports mock and DeepSeek-backed runs. The `chat` command is intentionally simple: each user message starts one bounded harness run, prints the event summary, and waits for the next message. The WebUI is intentionally minimal, and Docker distribution is local build/run support rather than a published registry image or hosted service.

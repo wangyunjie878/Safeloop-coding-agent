@@ -2252,6 +2252,78 @@ CI evidence: GitHub Actions CI run #4 passed on commit `efa6659`, `https://githu
 
 ---
 
+### Task 17: DeepSeek CLI Chat and Real-Provider Run Wiring
+
+**Goal:** Turn the existing SafeLoop harness into a usable small opencode-style CLI that can run with a user-provided DeepSeek API key, while keeping CI and tests offline through mock/fake clients.
+
+**Files:**
+- Modify: `safeloop/cli.py`
+- Modify: `safeloop/demo.py`
+- Modify: `safeloop/llm/deepseek.py`
+- Modify: `tests/test_deepseek_client.py`
+- Create: `tests/test_cli_deepseek_chat.py`
+- Modify: `README.md`
+- Modify: `PLAN.md`
+- Modify: `AGENT_LOG.md`
+
+**Interfaces:**
+- Consumes: `CredentialManager`, `DeepSeekClient`, `AgentStateMachine`, `run_harness_with_client`
+- Produces: `python -m safeloop run --config safeloop.yml --task "..." --llm deepseek`
+- Produces: `python -m safeloop chat --config safeloop.yml --llm deepseek`
+- Produces: CLI flags `--model`, `--credential-backend`, and `--dotenv-path`
+
+- [x] **Step 1: Write failing CLI tests**
+
+Created `tests/test_cli_deepseek_chat.py` with offline fake DeepSeek coverage for configured env credentials, missing-key handling, and one interactive `chat` turn.
+
+- [x] **Step 2: Run tests to verify RED**
+
+Run: `python -m pytest tests/test_cli_deepseek_chat.py -v`
+
+Observed RED: `3 failed`; failure reason was missing `safeloop.cli.DeepSeekClient`, proving real-provider CLI wiring did not exist.
+
+- [x] **Step 3: Implement minimal CLI wiring**
+
+Added `run_harness_with_client()` so mock and DeepSeek clients use the same state machine. Added `run --llm deepseek` and `chat --llm deepseek` support with credential lookup from keyring/env/dotenv and no key printing.
+
+- [x] **Step 4: Run focused CLI tests to verify GREEN**
+
+Run: `python -m pytest tests/test_cli_deepseek_chat.py -v`
+
+Observed GREEN: `3 passed`.
+
+- [x] **Step 5: Write failing prompt-contract test**
+
+Added a DeepSeek client test that requires the system prompt to describe the single JSON tool-action contract and include tool schemas.
+
+- [x] **Step 6: Run test to verify RED**
+
+Run: `python -m pytest tests/test_deepseek_client.py::test_deepseek_client_prompt_describes_single_json_tool_action_contract -v`
+
+Observed RED: prompt did not contain `exactly one JSON object`.
+
+- [x] **Step 7: Strengthen DeepSeek action prompt**
+
+Updated `DeepSeekClient` to require exactly one JSON object with `tool_name`, `arguments`, `reason`, and `expected_outcome`, and to choose from provided tool schemas.
+
+- [x] **Step 8: Run focused tests**
+
+Run: `python -m pytest tests/test_cli_deepseek_chat.py tests/test_deepseek_client.py tests/test_demo.py -v`
+
+Observed GREEN: `15 passed`.
+
+- [x] **Step 9: Update README and process evidence**
+
+README now documents key setup, one-shot DeepSeek run, simple terminal chat, env/dotenv fallback, and the known limit that each chat input starts one bounded harness run.
+
+- [x] **Step 10: Final verification, commit, push, and PR**
+
+Required commands before commit: `python -m pytest -v`, `python -m safeloop demo`, and secret scan. Then commit, push `feature/deepseek-chat-cli`, and create a PR targeting `feature/distribution-docs`.
+
+Verification evidence before commit: `python -m pytest -v` -> `153 passed, 1 warning`; `python -m safeloop demo` -> exit `0` with guardrail denial, test failure feedback, patch, retest, and finish events; `python -m safeloop run --config samples/python_buggy_calculator/safeloop.yml --task verify --llm mock` -> exit `0` with `final_status: finished`; non-test repository secret scan found no matches. Implementation commit hash is recorded in the follow-up traceability entry because a commit cannot contain its own final hash.
+
+---
+
 ## Review Gates for Every Task
 
 Each task must pass two review gates before moving to the next task:

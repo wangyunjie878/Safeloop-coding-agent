@@ -4,10 +4,13 @@ import argparse
 from collections.abc import Sequence
 import getpass
 from pathlib import Path
+import sys
 
 from . import __version__
-from .credentials import CredentialManager
-from .demo import print_run_summary, run_demo, run_harness
+from .config import load_config
+from .credentials import CredentialError, CredentialManager
+from .demo import print_run_summary, run_demo, run_harness, run_harness_with_client
+from .llm.deepseek import DeepSeekClient
 
 
 _DEFAULT_MOCK_FINISH_RESPONSE = (
@@ -37,8 +40,20 @@ def _build_parser() -> argparse.ArgumentParser:
     run_parser.set_defaults(command="run")
     run_parser.add_argument("--config", required=True)
     run_parser.add_argument("--task", required=True)
-    run_parser.add_argument("--llm", choices=("mock",), default="mock")
+    run_parser.add_argument("--llm", choices=("mock", "deepseek"))
+    run_parser.add_argument("--model")
+    run_parser.add_argument("--credential-backend", choices=("keyring", "env", "dotenv"))
+    run_parser.add_argument("--dotenv-path")
     run_parser.add_argument("--mock-response", action="append", default=[])
+
+    chat_parser = subparsers.add_parser("chat", help="Chat with SafeLoop in the terminal")
+    chat_parser.set_defaults(command="chat")
+    chat_parser.add_argument("--config", required=True)
+    chat_parser.add_argument("--llm", choices=("mock", "deepseek"))
+    chat_parser.add_argument("--model")
+    chat_parser.add_argument("--credential-backend", choices=("keyring", "env", "dotenv"))
+    chat_parser.add_argument("--dotenv-path")
+    chat_parser.add_argument("--mock-response", action="append", default=[])
 
     credentials_parser = subparsers.add_parser("credentials", help="Manage provider credentials")
     credentials_parser.set_defaults(command="credentials")
@@ -64,13 +79,73 @@ def _placeholder_command(name: str) -> int:
 
 
 def _run_command(args: argparse.Namespace) -> int:
-    if args.llm != "mock":
-        raise ValueError("only mock LLM is available for this command")
+    config_path = Path(args.config)
+    llm_provider = _resolve_llm_provider(config_path, args.llm)
+    if llm_provider == "deepseek":
+        llm_client = _build_deepseek_client(config_path, args)
+        if llm_client is None:
+            return 1
+        run, events = run_harness_with_client(args.task, config_path, llm_client)
+        print_run_summary(run, events)
+        return 0 if run.status == "finished" else 1
 
     mock_responses = list(args.mock_response) or [_DEFAULT_MOCK_FINISH_RESPONSE]
-    run, events = run_harness(args.task, Path(args.config), mock_responses)
+    run, events = run_harness(args.task, config_path, mock_responses)
     print_run_summary(run, events)
     return 0 if run.status == "finished" else 1
+
+
+def _resolve_llm_provider(config_path: Path, explicit_provider: str | None) -> str:
+    if explicit_provider:
+        return explicit_provider
+    return load_config(config_path).llm_provider
+
+
+def _build_deepseek_client(config_path: Path, args: argparse.Namespace) -> DeepSeekClient | None:
+    config = load_config(config_path)
+    backend = args.credential_backend or config.credential_backend
+    manager = CredentialManager(backend=backend, dotenv_path=args.dotenv_path)
+    try:
+        api_key = manager.get_key("deepseek")
+    except CredentialError as exc:
+        print(f"credential error: {exc}", file=sys.stderr)
+        return None
+    if not api_key:
+        source = "DEEPSEEK_API_KEY" if backend in {"env", "dotenv"} else "safeloop credentials set --provider deepseek"
+        print(f"missing DeepSeek API key; configure {source}", file=sys.stderr)
+        return None
+
+    model = args.model or config.model or "deepseek-v4-flash"
+    return DeepSeekClient(api_key=api_key, model=model)
+
+
+def _run_chat_command(args: argparse.Namespace) -> int:
+    config_path = Path(args.config)
+    llm_provider = _resolve_llm_provider(config_path, args.llm)
+    print("SafeLoop CLI chat")
+    print("Type exit or quit to stop.")
+
+    while True:
+        try:
+            task = input("safeloop> ").strip()
+        except EOFError:
+            print()
+            return 0
+
+        if task.lower() in {"exit", "quit"}:
+            return 0
+        if not task:
+            continue
+
+        if llm_provider == "deepseek":
+            llm_client = _build_deepseek_client(config_path, args)
+            if llm_client is None:
+                return 1
+            run, events = run_harness_with_client(task, config_path, llm_client)
+        else:
+            mock_responses = list(args.mock_response) or [_DEFAULT_MOCK_FINISH_RESPONSE]
+            run, events = run_harness(task, config_path, mock_responses)
+        print_run_summary(run, events)
 
 
 def _run_web_command(args: argparse.Namespace) -> int:
@@ -109,6 +184,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _run_credentials_command(args)
     if args.command == "demo":
         return run_demo()
+    if args.command == "chat":
+        return _run_chat_command(args)
     if args.command == "run":
         return _run_command(args)
     if args.command == "web":

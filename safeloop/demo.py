@@ -6,6 +6,7 @@ import tempfile
 
 from safeloop.config import load_config
 from safeloop.events import EventLogStore
+from safeloop.llm.base import LLMClient
 from safeloop.llm.mock import MockLLMClient
 from safeloop.models import Event, RunRecord
 from safeloop.run_manager import RunManager
@@ -48,18 +49,22 @@ def _sample_source() -> Path:
     return Path(__file__).resolve().parent.parent / "samples" / "python_buggy_calculator"
 
 
-def run_harness(task: str, config_path: Path | str, mock_responses: list[str]) -> tuple[RunRecord, list[Event]]:
+def run_harness_with_client(task: str, config_path: Path | str, llm_client: LLMClient) -> tuple[RunRecord, list[Event]]:
     config = load_config(config_path)
     store = EventLogStore()
     manager = RunManager(event_store=store)
     machine = AgentStateMachine(
         run_manager=manager,
         event_store=store,
-        llm_client=MockLLMClient(mock_responses),
+        llm_client=llm_client,
     )
 
     run = machine.run(task, config)
     return run, store.list(run.id)
+
+
+def run_harness(task: str, config_path: Path | str, mock_responses: list[str]) -> tuple[RunRecord, list[Event]]:
+    return run_harness_with_client(task, config_path, MockLLMClient(mock_responses))
 
 
 def print_run_summary(run: RunRecord, events: list[Event]) -> None:
