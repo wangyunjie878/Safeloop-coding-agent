@@ -2322,6 +2322,8 @@ Required commands before commit: `python -m pytest -v`, `python -m safeloop demo
 
 Verification evidence before commit: `python -m pytest -v` -> `153 passed, 1 warning`; `python -m safeloop demo` -> exit `0` with guardrail denial, test failure feedback, patch, retest, and finish events; `python -m safeloop run --config samples/python_buggy_calculator/safeloop.yml --task verify --llm mock` -> exit `0` with `final_status: finished`; non-test repository secret scan found no matches. Implementation commit hash is recorded in the follow-up traceability entry because a commit cannot contain its own final hash.
 
+Implementation commit: `a955d48` (`feat(task-17): add deepseek chat cli`).
+
 ---
 
 ## Review Gates for Every Task
