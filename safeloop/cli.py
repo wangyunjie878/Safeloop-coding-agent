@@ -10,6 +10,12 @@ from .credentials import CredentialManager
 from .demo import print_run_summary, run_demo, run_harness
 
 
+_DEFAULT_MOCK_FINISH_RESPONSE = (
+    '{"tool_name":"finish","arguments":{"message":"mock run complete"},'
+    '"reason":"default mock response","expected_outcome":"stop"}'
+)
+
+
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="safeloop",
@@ -58,11 +64,9 @@ def _placeholder_command(name: str) -> int:
 def _run_command(args: argparse.Namespace) -> int:
     if args.llm != "mock":
         raise ValueError("only mock LLM is available for this command")
-    if not args.mock_response:
-        print("run requires at least one --mock-response when --llm mock is used")
-        return 2
 
-    run, events = run_harness(args.task, Path(args.config), list(args.mock_response))
+    mock_responses = list(args.mock_response) or [_DEFAULT_MOCK_FINISH_RESPONSE]
+    run, events = run_harness(args.task, Path(args.config), mock_responses)
     print_run_summary(run, events)
     return 0 if run.status == "finished" else 1
 

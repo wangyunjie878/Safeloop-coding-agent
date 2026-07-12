@@ -56,6 +56,37 @@ def test_run_command_accepts_config_task_and_mock_finish_response(tmp_path: Path
     assert "finished" in result.stdout
 
 
+def test_run_command_uses_default_mock_finish_response(tmp_path: Path):
+    config_path = tmp_path / "safeloop.yml"
+    config_path.write_text(
+        f"workspace: {tmp_path}\n"
+        "test_command: python -c \"print('ok')\"\n"
+        "llm_provider: mock\n",
+        encoding="utf-8",
+    )
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "safeloop",
+            "run",
+            "--config",
+            str(config_path),
+            "--task",
+            "verify",
+            "--llm",
+            "mock",
+        ],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+    assert result.returncode == 0
+    assert "finished" in result.stdout
+
+
 def test_demo_script_patches_bug_after_test_failure_feedback(tmp_path: Path):
     source = Path("samples/python_buggy_calculator")
     workspace = tmp_path / "python_buggy_calculator"
