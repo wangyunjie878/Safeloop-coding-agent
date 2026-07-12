@@ -2324,6 +2324,8 @@ Verification evidence before commit: `python -m pytest -v` -> `153 passed, 1 war
 
 Implementation commit: `a955d48` (`feat(task-17): add deepseek chat cli`).
 
+PR evidence: `feature/deepseek-chat-cli` was pushed and published as GitHub PR #8, `https://github.com/wangyunjie878/Safeloop-coding-agent/pull/8`, targeting base branch `feature/distribution-docs`. The PR body records the no-subagent user request, controller implementation, validation commands, and credential-safety notes.
+
 ---
 
 ## Review Gates for Every Task
