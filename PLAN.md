@@ -1234,7 +1234,7 @@ Update `PLAN.md` Task 8 with the commit hash and append an `AGENT_LOG.md` entry.
 - guardrail deny 分类为 `guardrail_blocked`。
 - 原始片段最长 1200 字符，并经过 redaction。
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # tests/test_feedback.py
@@ -2117,7 +2117,7 @@ Run: `docker build -t safeloop-agent .`
 
 Expected: Docker image builds successfully.
 
-- [ ] **Step 6: Commit and log**
+- [x] **Step 6: Commit and log**
 
 ```bash
 git add Dockerfile .github/workflows/ci.yml .gitlab-ci.yml README.md Makefile tests/test_distribution_files.py PLAN.md AGENT_LOG.md
@@ -2125,6 +2125,14 @@ git commit -m "chore(task-15): add ci docker and readme"
 ```
 
 Update `PLAN.md` Task 15 with the commit hash and append an `AGENT_LOG.md` entry.
+
+Implementation commit: `d8b964a` (`chore(task-15): add ci docker and readme`).
+
+Verification evidence: RED `python -m pytest tests/test_distribution_files.py -v` failed with 4 expected missing-file failures; focused GREEN `4 passed`; full suite `145 passed, 1 warning`; `python -m safeloop demo` exited `0`; `git diff --check` was clean except Windows LF-to-CRLF warnings; secret scan found no matches. Local `make test` could not run because GNU Make is not installed in this Windows shell. Initial local `docker build -t safeloop-agent .` could not reach Docker Desktop daemon; after Docker Desktop was started, elevated `docker build -t safeloop-agent .` succeeded and produced `safeloop-agent:latest`. The GitHub Actions workflow added in this task runs `python -m pytest`, `python -m safeloop demo`, and `docker build -t safeloop-agent .` on every push and pull request, including documentation-only changes.
+
+Review-fix commit: `f877799` (`fix(task-15): harden docker context checks`) closes reviewer Sartre's Critical `.dockerignore` credential-copy risk and Important weak-test finding. RED: focused distribution tests failed on missing `.env`, then missing `.safeloop`. GREEN: focused distribution tests `5 passed`; full suite `146 passed, 1 warning`; secret scan found no matches.
+
+Re-review: reviewer Sartre confirmed the Critical and Important findings are fixed, found no new Critical or Important issues, and marked Task 15 ready to proceed to Task 16. Controller verification after re-review: `python -m pytest -v` -> `146 passed, 1 warning`; `python -m safeloop demo` -> exit `0`.
 
 ---
 
@@ -2187,37 +2195,47 @@ def test_reflection_marks_human_owned_report():
     assert "Superpowers" in text
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_process_docs.py -v`
 
 Expected: FAIL until process documents contain required sections.
 
-- [ ] **Step 3: Write minimal documentation structure**
+Actual RED: `2 failed, 1 passed`; failures were missing exact `SPEC_PROCESS.md` phrase coverage and missing `REFLECTION.md`.
+
+- [x] **Step 3: Write minimal documentation structure**
 
 Create or update the process documents using real process evidence from this project. `REFLECTION.md` may contain headings and notes for the student to complete personally.
 
-- [ ] **Step 4: Run focused tests**
+- [x] **Step 4: Run focused tests**
 
 Run: `python -m pytest tests/test_process_docs.py -v`
 
 Expected: PASS.
 
-- [ ] **Step 5: Run final local verification**
+Actual: `3 passed`.
+
+- [x] **Step 5: Run final local verification**
 
 Run: `make test`
 
 Expected: PASS.
 
+Actual local note: blocked because GNU Make is not installed in this Windows shell; equivalent `python -m pytest -v` passed with `149 passed, 1 warning`.
+
 Run: `python -m safeloop demo`
 
 Expected: Exit 0 and output contains `guardrail_blocked`, `feedback_added`, and `finished`.
+
+Actual: exit `0`; output contained `guardrail_blocked`, `feedback_added`, and `finished`.
 
 Run: `docker build -t safeloop-agent .`
 
 Expected: Docker image builds successfully.
 
-- [ ] **Step 6: Commit and log**
+Actual local note: sandboxed attempt could not access Docker config; elevated retry initially reached Docker but failed because Docker Desktop daemon was not running (`dockerDesktopLinuxEngine` pipe missing). After Docker Desktop was started, elevated `docker build -t safeloop-agent .` succeeded and produced `safeloop-agent:latest`. The GitHub Actions workflow still includes the Docker build job for CI verification.
+
+- [x] **Step 6: Commit and log**
 
 ```bash
 git add SPEC_PROCESS.md AGENT_LOG.md REFLECTION.md README.md tests/test_process_docs.py PLAN.md
@@ -2225,6 +2243,12 @@ git commit -m "docs(task-16): add process evidence documents"
 ```
 
 Update `PLAN.md` Task 16 with the commit hash and append the final `AGENT_LOG.md` entry.
+
+Implementation evidence: implementer Poincare was dispatched but timed out after leaving partial documentation edits; the controller completed the Task16 evidence updates. Commit: `cafb6da` (`docs(task-16): add process evidence documents`).
+
+PR evidence: `feature/distribution-docs` was pushed and published as GitHub PR #7, `https://github.com/wangyunjie878/Safeloop-coding-agent/pull/7`, targeting base branch `feature/cli-web-demo`. The PR body records subagent ownership, controller/human interventions, validation commands, Docker verification, and credential notes.
+
+CI evidence: GitHub Actions CI run #4 passed on commit `efa6659`, `https://github.com/wangyunjie878/Safeloop-coding-agent/actions/runs/29193389510`.
 
 ---
 
@@ -2255,11 +2279,11 @@ Critical issues must be fixed before the next task starts.
 - [ ] `SPEC_PROCESS.md` records brainstorming, at least 3 iterations, AI suggestions accepted/rejected, and cold-start validation.
 - [ ] `AGENT_LOG.md` records each task with timestamp, skill, prompt/context, subagent output or commit hash, human intervention and lesson.
 - [ ] `make test` passes locally.
-- [ ] `python -m safeloop demo` deterministically shows guardrail block, feedback loop and successful finish.
-- [ ] GitHub Actions passes on the final push.
+- [x] `python -m safeloop demo` deterministically shows guardrail block, feedback loop and successful finish.
+- [x] GitHub Actions passes on the final push.
 - [ ] `.gitlab-ci.yml` includes a passing `unit-test` job.
-- [ ] Docker image builds.
-- [ ] README explains installation, running, Docker distribution, key security, safety boundaries, CI/CD and known limits.
-- [ ] No real credentials are present in repository files or git history.
-- [ ] Final PR descriptions mention subagent ownership and human modifications.
+- [x] Docker image builds.
+- [x] README explains installation, running, Docker distribution, key security, safety boundaries, CI/CD and known limits.
+- [x] No real credentials are present in repository files or git history.
+- [x] Final PR descriptions mention subagent ownership and human modifications.
 - [ ] `REFLECTION.md` is written by the student and stays within the course word range.
