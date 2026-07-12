@@ -64,3 +64,4 @@ Controller fix:
 - Strengthened `tests/test_distribution_files.py` to parse CI YAML with `yaml.BaseLoader`, assert push and pull_request triggers without `paths-ignore`, assert job run commands, assert the exact Docker CMD, and assert Docker ignore entries for `.env`, `.env.*`, and `.safeloop`.
 - RED: focused distribution tests failed because `.env` was absent, then failed because `.safeloop` was absent.
 - GREEN: focused `python -m pytest tests/test_distribution_files.py -v` -> `5 passed`; full `python -m pytest -v` -> `146 passed, 1 warning`; secret scan found no matches; `git diff --check` was clean except Windows LF-to-CRLF warnings.
+- Review-fix commit: `f877799` (`fix(task-15): harden docker context checks`).

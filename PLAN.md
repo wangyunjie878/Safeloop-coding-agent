@@ -2130,6 +2130,8 @@ Implementation commit: `d8b964a` (`chore(task-15): add ci docker and readme`).
 
 Verification evidence: RED `python -m pytest tests/test_distribution_files.py -v` failed with 4 expected missing-file failures; focused GREEN `4 passed`; full suite `145 passed, 1 warning`; `python -m safeloop demo` exited `0`; `git diff --check` was clean except Windows LF-to-CRLF warnings; secret scan found no matches. Local `make test` could not run because GNU Make is not installed in this Windows shell, and local `docker build -t safeloop-agent .` could not reach Docker Desktop daemon. The GitHub Actions workflow added in this task runs `python -m pytest`, `python -m safeloop demo`, and `docker build -t safeloop-agent .` on every push and pull request, including documentation-only changes.
 
+Review-fix commit: `f877799` (`fix(task-15): harden docker context checks`) closes reviewer Sartre's Critical `.dockerignore` credential-copy risk and Important weak-test finding. RED: focused distribution tests failed on missing `.env`, then missing `.safeloop`. GREEN: focused distribution tests `5 passed`; full suite `146 passed, 1 warning`; secret scan found no matches.
+
 ---
 
 ### Task 16: Process Documents and Final Acceptance Evidence
