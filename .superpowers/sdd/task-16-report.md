@@ -50,7 +50,7 @@ make test
 blocked locally: GNU Make is not installed in this Windows shell
 
 docker build -t safeloop-agent .
-blocked locally after elevated retry: Docker Desktop daemon is not running
+initially blocked because Docker Desktop daemon was not running; after Docker Desktop was started, elevated retry passed and produced safeloop-agent:latest
 
 secret scan
 no matches
@@ -68,3 +68,4 @@ no matches
 - Important finding: Task16 Step 6 remained unchecked despite commit/log evidence.
 - Fix: mark Task16 Step 6 complete and clarify README CI evidence location after branch push.
 - Review-fix commit: `c829042` (`docs(task-16): fix process review findings`).
+- Re-review limitation: Dewey's re-review returned an empty completion and a fresh reviewer attempt hit the Codex usage limit; the controller manually verified the original Important finding was fixed and recorded the limitation in `AGENT_LOG.md`.

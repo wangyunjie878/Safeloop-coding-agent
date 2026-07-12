@@ -2128,7 +2128,7 @@ Update `PLAN.md` Task 15 with the commit hash and append an `AGENT_LOG.md` entry
 
 Implementation commit: `d8b964a` (`chore(task-15): add ci docker and readme`).
 
-Verification evidence: RED `python -m pytest tests/test_distribution_files.py -v` failed with 4 expected missing-file failures; focused GREEN `4 passed`; full suite `145 passed, 1 warning`; `python -m safeloop demo` exited `0`; `git diff --check` was clean except Windows LF-to-CRLF warnings; secret scan found no matches. Local `make test` could not run because GNU Make is not installed in this Windows shell, and local `docker build -t safeloop-agent .` could not reach Docker Desktop daemon. The GitHub Actions workflow added in this task runs `python -m pytest`, `python -m safeloop demo`, and `docker build -t safeloop-agent .` on every push and pull request, including documentation-only changes.
+Verification evidence: RED `python -m pytest tests/test_distribution_files.py -v` failed with 4 expected missing-file failures; focused GREEN `4 passed`; full suite `145 passed, 1 warning`; `python -m safeloop demo` exited `0`; `git diff --check` was clean except Windows LF-to-CRLF warnings; secret scan found no matches. Local `make test` could not run because GNU Make is not installed in this Windows shell. Initial local `docker build -t safeloop-agent .` could not reach Docker Desktop daemon; after Docker Desktop was started, elevated `docker build -t safeloop-agent .` succeeded and produced `safeloop-agent:latest`. The GitHub Actions workflow added in this task runs `python -m pytest`, `python -m safeloop demo`, and `docker build -t safeloop-agent .` on every push and pull request, including documentation-only changes.
 
 Review-fix commit: `f877799` (`fix(task-15): harden docker context checks`) closes reviewer Sartre's Critical `.dockerignore` credential-copy risk and Important weak-test finding. RED: focused distribution tests failed on missing `.env`, then missing `.safeloop`. GREEN: focused distribution tests `5 passed`; full suite `146 passed, 1 warning`; secret scan found no matches.
 
@@ -2233,7 +2233,7 @@ Run: `docker build -t safeloop-agent .`
 
 Expected: Docker image builds successfully.
 
-Actual local note: sandboxed attempt could not access Docker config; elevated retry reached Docker but failed because Docker Desktop daemon was not running (`dockerDesktopLinuxEngine` pipe missing). The GitHub Actions workflow still includes the Docker build job for CI verification.
+Actual local note: sandboxed attempt could not access Docker config; elevated retry initially reached Docker but failed because Docker Desktop daemon was not running (`dockerDesktopLinuxEngine` pipe missing). After Docker Desktop was started, elevated `docker build -t safeloop-agent .` succeeded and produced `safeloop-agent:latest`. The GitHub Actions workflow still includes the Docker build job for CI verification.
 
 - [x] **Step 6: Commit and log**
 
@@ -2278,7 +2278,7 @@ Critical issues must be fixed before the next task starts.
 - [ ] `python -m safeloop demo` deterministically shows guardrail block, feedback loop and successful finish.
 - [ ] GitHub Actions passes on the final push.
 - [ ] `.gitlab-ci.yml` includes a passing `unit-test` job.
-- [ ] Docker image builds.
+- [x] Docker image builds.
 - [ ] README explains installation, running, Docker distribution, key security, safety boundaries, CI/CD and known limits.
 - [ ] No real credentials are present in repository files or git history.
 - [ ] Final PR descriptions mention subagent ownership and human modifications.
