@@ -67,3 +67,4 @@ no matches
 - Reviewer Dewey found no Critical issues.
 - Important finding: Task16 Step 6 remained unchecked despite commit/log evidence.
 - Fix: mark Task16 Step 6 complete and clarify README CI evidence location after branch push.
+- Review-fix commit: `c829042` (`docs(task-16): fix process review findings`).
