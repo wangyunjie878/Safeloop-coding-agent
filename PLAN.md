@@ -2246,6 +2246,8 @@ Update `PLAN.md` Task 16 with the commit hash and append the final `AGENT_LOG.md
 
 Implementation evidence: implementer Poincare was dispatched but timed out after leaving partial documentation edits; the controller completed the Task16 evidence updates. Commit: `cafb6da` (`docs(task-16): add process evidence documents`).
 
+PR evidence: `feature/distribution-docs` was pushed and published as GitHub PR #7, `https://github.com/wangyunjie878/Safeloop-coding-agent/pull/7`, targeting base branch `feature/cli-web-demo`. The PR body records subagent ownership, controller/human interventions, validation commands, Docker verification, and credential notes.
+
 ---
 
 ## Review Gates for Every Task
@@ -2275,11 +2277,11 @@ Critical issues must be fixed before the next task starts.
 - [ ] `SPEC_PROCESS.md` records brainstorming, at least 3 iterations, AI suggestions accepted/rejected, and cold-start validation.
 - [ ] `AGENT_LOG.md` records each task with timestamp, skill, prompt/context, subagent output or commit hash, human intervention and lesson.
 - [ ] `make test` passes locally.
-- [ ] `python -m safeloop demo` deterministically shows guardrail block, feedback loop and successful finish.
+- [x] `python -m safeloop demo` deterministically shows guardrail block, feedback loop and successful finish.
 - [ ] GitHub Actions passes on the final push.
 - [ ] `.gitlab-ci.yml` includes a passing `unit-test` job.
 - [x] Docker image builds.
-- [ ] README explains installation, running, Docker distribution, key security, safety boundaries, CI/CD and known limits.
-- [ ] No real credentials are present in repository files or git history.
-- [ ] Final PR descriptions mention subagent ownership and human modifications.
+- [x] README explains installation, running, Docker distribution, key security, safety boundaries, CI/CD and known limits.
+- [x] No real credentials are present in repository files or git history.
+- [x] Final PR descriptions mention subagent ownership and human modifications.
 - [ ] `REFLECTION.md` is written by the student and stays within the course word range.
