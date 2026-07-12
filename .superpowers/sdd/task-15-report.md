@@ -53,3 +53,14 @@ Result: 4 passed.
 
 - Local Docker image build verification remains blocked until Docker Desktop daemon is running; CI is configured to perform the Docker build.
 - Follow-up traceability commit to record `d8b964a` in `PLAN.md` and `AGENT_LOG.md`.
+
+## Review Fix
+
+Reviewer Sartre found one Critical issue: `.dockerignore` did not exclude `.env` / `.env.*`, so local ignored credentials could be copied into Docker images by `COPY . .`.
+
+Reviewer also found one Important test-quality issue: distribution tests only searched substrings and did not verify GitHub Actions triggers, job run commands, GitLab pytest script, Docker CMD, or Docker credential ignores structurally.
+
+Controller fix:
+- Strengthened `tests/test_distribution_files.py` to parse CI YAML with `yaml.BaseLoader`, assert push and pull_request triggers without `paths-ignore`, assert job run commands, assert the exact Docker CMD, and assert Docker ignore entries for `.env`, `.env.*`, and `.safeloop`.
+- RED: focused distribution tests failed because `.env` was absent, then failed because `.safeloop` was absent.
+- GREEN: focused `python -m pytest tests/test_distribution_files.py -v` -> `5 passed`; full `python -m pytest -v` -> `146 passed, 1 warning`; secret scan found no matches; `git diff --check` was clean except Windows LF-to-CRLF warnings.
