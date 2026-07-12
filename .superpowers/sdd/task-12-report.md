@@ -1,7 +1,7 @@
 Status: DONE
 
 Commit hashes:
-- Pending until implementation commit is created.
+- `5e11b3f` (`feat(task-12): add cli commands and mechanism demo`)
 
 RED evidence:
 - `python -m pytest tests/test_demo.py tests/test_cli_bootstrap.py -v` -> `2 failed, 3 passed`; `demo` still returned `demo is not yet implemented`, and `run` rejected `--config`, `--task`, and `--mock-response`.

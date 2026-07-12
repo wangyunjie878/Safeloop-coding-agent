@@ -1713,7 +1713,7 @@ git commit -m "feat(task-12): add cli commands and mechanism demo"
 
 Update `PLAN.md` Task 12 with the commit hash and append an `AGENT_LOG.md` entry.
 
-Implementation commit: pending until commit is created; a follow-up evidence note will record the final hash to avoid self-referential hash churn.
+Implementation commit: `5e11b3f` (`feat(task-12): add cli commands and mechanism demo`).
 
 ---
 
