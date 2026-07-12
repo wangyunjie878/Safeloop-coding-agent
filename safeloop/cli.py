@@ -3,9 +3,11 @@ from __future__ import annotations
 import argparse
 from collections.abc import Sequence
 import getpass
+from pathlib import Path
 
 from . import __version__
 from .credentials import CredentialManager
+from .demo import print_run_summary, run_demo, run_harness
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -16,9 +18,19 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--version", action="version", version=f"safeloop {__version__}")
 
     subparsers = parser.add_subparsers(dest="command")
-    for name in ("demo", "web", "run"):
-        command_parser = subparsers.add_parser(name, help=f"{name} command placeholder")
-        command_parser.set_defaults(command=name)
+
+    demo_parser = subparsers.add_parser("demo", help="Run the deterministic mechanism demo")
+    demo_parser.set_defaults(command="demo")
+
+    web_parser = subparsers.add_parser("web", help="web command placeholder")
+    web_parser.set_defaults(command="web")
+
+    run_parser = subparsers.add_parser("run", help="Run a task from a SafeLoop config")
+    run_parser.set_defaults(command="run")
+    run_parser.add_argument("--config", required=True)
+    run_parser.add_argument("--task", required=True)
+    run_parser.add_argument("--llm", choices=("mock",), default="mock")
+    run_parser.add_argument("--mock-response", action="append", default=[])
 
     credentials_parser = subparsers.add_parser("credentials", help="Manage provider credentials")
     credentials_parser.set_defaults(command="credentials")
@@ -41,6 +53,18 @@ def _build_parser() -> argparse.ArgumentParser:
 def _placeholder_command(name: str) -> int:
     print(f"{name} is not yet implemented.")
     return 1
+
+
+def _run_command(args: argparse.Namespace) -> int:
+    if args.llm != "mock":
+        raise ValueError("only mock LLM is available for this command")
+    if not args.mock_response:
+        print("run requires at least one --mock-response when --llm mock is used")
+        return 2
+
+    run, events = run_harness(args.task, Path(args.config), list(args.mock_response))
+    print_run_summary(run, events)
+    return 0 if run.status == "finished" else 1
 
 
 def _run_credentials_command(args: argparse.Namespace) -> int:
@@ -70,6 +94,10 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     if args.command == "credentials":
         return _run_credentials_command(args)
+    if args.command == "demo":
+        return run_demo()
+    if args.command == "run":
+        return _run_command(args)
 
     return _placeholder_command(args.command)
 

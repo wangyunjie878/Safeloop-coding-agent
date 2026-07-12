@@ -1092,7 +1092,7 @@ Update `PLAN.md` Task 7 with the commit hash and append an `AGENT_LOG.md` entry.
 - 参数缺失或类型错误返回失败 `ToolResult`，不抛出未捕获异常。
 - `finish` 返回 `ToolResult(success=True, summary="finished")`，并在 metadata 中标记 `finish=True`。
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # tests/test_dispatcher.py
@@ -1173,7 +1173,7 @@ def test_dispatcher_finish_sets_metadata(tmp_path: Path):
     assert result.metadata["finish"] is True
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_dispatcher.py -v`
 
@@ -1672,29 +1672,39 @@ Run: `python -m pytest tests/test_demo.py tests/test_cli_bootstrap.py -v`
 
 Expected: FAIL because `demo` and `run` commands are not wired.
 
-- [ ] **Step 3: Write minimal implementation**
+Observed RED: `2 failed, 3 passed`; `demo` returned placeholder exit code `1`, and `run` rejected `--config`, `--task`, and `--mock-response`. Follow-up RED for the real demo mechanism failed because the copied sample workspace did not show `patch_file success=True` or `run_tests success=True`.
+
+- [x] **Step 3: Write minimal implementation**
 
 Wire CLI subcommands to state machine and create the deterministic sample project. The demo must not call a real provider.
 
-- [ ] **Step 4: Run focused tests**
+- [x] **Step 4: Run focused tests**
 
 Run: `python -m pytest tests/test_demo.py tests/test_cli_bootstrap.py -v`
 
 Expected: PASS.
 
-- [ ] **Step 5: Run demo manually**
+Observed GREEN: `6 passed in 4.21s`.
+
+- [x] **Step 5: Run demo manually**
 
 Run: `python -m safeloop demo`
 
 Expected: Exit 0 and output contains `guardrail_blocked`, `feedback_added`, and `finished`.
 
-- [ ] **Step 6: Run full tests**
+Observed GREEN: exit `0`; stdout contained `guardrail_blocked`, `feedback_added test_failure`, `patch_file success=True`, `run_tests success=True`, and `finished`.
+
+`make demo` was not runnable in this Windows shell because `make` is not installed; the underlying target command `python -m safeloop demo` was verified directly.
+
+- [x] **Step 6: Run full tests**
 
 Run: `make test`
 
 Expected: PASS.
 
-- [ ] **Step 7: Commit and log**
+Observed GREEN: `python -m pytest -v` -> `134 passed in 9.89s`.
+
+- [x] **Step 7: Commit and log**
 
 ```bash
 git add safeloop/cli.py safeloop/demo.py tests/test_demo.py tests/test_cli_bootstrap.py samples Makefile PLAN.md AGENT_LOG.md
@@ -1702,6 +1712,8 @@ git commit -m "feat(task-12): add cli commands and mechanism demo"
 ```
 
 Update `PLAN.md` Task 12 with the commit hash and append an `AGENT_LOG.md` entry.
+
+Implementation commit: pending until commit is created; a follow-up evidence note will record the final hash to avoid self-referential hash churn.
 
 ---
 

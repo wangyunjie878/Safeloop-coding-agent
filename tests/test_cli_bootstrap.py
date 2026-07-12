@@ -29,7 +29,7 @@ def test_version_flag_prints_version():
     assert result.stdout.strip().startswith("safeloop ")
 
 
-@pytest.mark.parametrize("command", ["demo", "web", "run"])
+@pytest.mark.parametrize("command", ["web"])
 def test_placeholder_commands_exit_one_and_report_not_yet_implemented(command):
     result = subprocess.run(
         [sys.executable, "-m", "safeloop", command],

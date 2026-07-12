@@ -1,0 +1,9 @@
+workspace: .
+test_command: python -c "import calculator; assert calculator.subtract(4, 2) == 2"
+llm_provider: mock
+allowed_paths:
+  - .
+blocked_commands:
+  - git push
+command_timeout_seconds: 10
+max_steps: 8
