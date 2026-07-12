@@ -1853,6 +1853,8 @@ Implementation commit: `756639d` (`feat(task-13): add fastapi webui`).
 
 Hash traceability note: the implementation hash was recorded in this follow-up evidence update because a commit cannot contain its own final hash.
 
+Review-fix commit: `b561d9d` (`fix(task-13): redact web run responses`) closes reviewer Descartes's Critical finding that Web run responses could echo configured runtime secrets through raw `RunRecord.task`. RED: focused Task 13 tests failed because `POST /api/runs` returned `alpha-token-123`. GREEN: focused Task 13 tests `9 passed, 1 warning`; full suite `141 passed, 1 warning`. The `tests/test_cli_bootstrap.py` update is part of the Task 13 CLI interface because `web` changed from placeholder to real `uvicorn` runner.
+
 ---
 
 ### Task 14: Credential Manager and DeepSeek Client
