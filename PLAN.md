@@ -1748,7 +1748,7 @@ Review-fix commit: `6111087` (`fix(task-12): allow default mock run`) addresses 
 - 缺失 run 返回 404。
 - WebUI 不显示 secret，事件 payload 使用 redaction。
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # tests/test_web.py
@@ -1812,29 +1812,35 @@ def test_missing_run_returns_404():
     assert response.status_code == 404
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_web.py -v`
 
 Expected: FAIL with missing `safeloop.web`.
 
-- [ ] **Step 3: Write minimal implementation**
+Observed RED: `python -m pytest tests/test_web.py tests/test_cli_bootstrap.py -v` failed during collection with `ModuleNotFoundError: No module named 'safeloop.web'`.
+
+- [x] **Step 3: Write minimal implementation**
 
 Implement FastAPI app, JSON endpoints, simple HTML, and CLI web command.
 
-- [ ] **Step 4: Run focused tests**
+- [x] **Step 4: Run focused tests**
 
 Run: `python -m pytest tests/test_web.py -v`
 
 Expected: PASS.
 
-- [ ] **Step 5: Run full tests**
+Observed GREEN: `python -m pytest tests/test_web.py tests/test_cli_bootstrap.py -v` -> `7 passed, 1 warning`.
+
+- [x] **Step 5: Run full tests**
 
 Run: `make test`
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit and log**
+Observed GREEN: `python -m pytest -v` -> `139 passed, 1 warning`.
+
+- [x] **Step 6: Commit and log**
 
 ```bash
 git add safeloop/web.py safeloop/cli.py tests/test_web.py pyproject.toml PLAN.md AGENT_LOG.md
@@ -1842,6 +1848,8 @@ git commit -m "feat(task-13): add fastapi webui"
 ```
 
 Update `PLAN.md` Task 13 with the commit hash and append an `AGENT_LOG.md` entry.
+
+Implementation commit: pending until commit creation; record the actual hash in the follow-up traceability update because a commit cannot contain its own final hash.
 
 ---
 

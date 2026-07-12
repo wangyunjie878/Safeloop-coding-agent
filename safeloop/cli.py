@@ -28,8 +28,10 @@ def _build_parser() -> argparse.ArgumentParser:
     demo_parser = subparsers.add_parser("demo", help="Run the deterministic mechanism demo")
     demo_parser.set_defaults(command="demo")
 
-    web_parser = subparsers.add_parser("web", help="web command placeholder")
+    web_parser = subparsers.add_parser("web", help="Run the SafeLoop FastAPI WebUI")
     web_parser.set_defaults(command="web")
+    web_parser.add_argument("--host", default="127.0.0.1")
+    web_parser.add_argument("--port", type=int, default=8000)
 
     run_parser = subparsers.add_parser("run", help="Run a task from a SafeLoop config")
     run_parser.set_defaults(command="run")
@@ -71,6 +73,13 @@ def _run_command(args: argparse.Namespace) -> int:
     return 0 if run.status == "finished" else 1
 
 
+def _run_web_command(args: argparse.Namespace) -> int:
+    import uvicorn
+
+    uvicorn.run("safeloop.web:create_app", host=args.host, port=args.port, factory=True)
+    return 0
+
+
 def _run_credentials_command(args: argparse.Namespace) -> int:
     manager = CredentialManager(backend=args.backend, dotenv_path=args.dotenv_path)
 
@@ -102,6 +111,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return run_demo()
     if args.command == "run":
         return _run_command(args)
+    if args.command == "web":
+        return _run_web_command(args)
 
     return _placeholder_command(args.command)
 
