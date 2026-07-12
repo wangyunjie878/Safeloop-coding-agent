@@ -2117,7 +2117,7 @@ Run: `docker build -t safeloop-agent .`
 
 Expected: Docker image builds successfully.
 
-- [ ] **Step 6: Commit and log**
+- [x] **Step 6: Commit and log**
 
 ```bash
 git add Dockerfile .github/workflows/ci.yml .gitlab-ci.yml README.md Makefile tests/test_distribution_files.py PLAN.md AGENT_LOG.md
@@ -2244,7 +2244,7 @@ git commit -m "docs(task-16): add process evidence documents"
 
 Update `PLAN.md` Task 16 with the commit hash and append the final `AGENT_LOG.md` entry.
 
-Implementation evidence: implementer Poincare was dispatched but timed out after leaving partial documentation edits; the controller completed the Task16 evidence updates and will record the final commit hash after commit. Pending commit hash.
+Implementation evidence: implementer Poincare was dispatched but timed out after leaving partial documentation edits; the controller completed the Task16 evidence updates. Commit: `cafb6da` (`docs(task-16): add process evidence documents`).
 
 ---
 

@@ -7,6 +7,7 @@
 - Created `REFLECTION.md` as a human-owned outline, not a generated final essay.
 - Added README CI/distribution location notes without inventing a hosted WebUI URL.
 - Updated `AGENT_LOG.md` and `PLAN.md` with process evidence.
+- Implementation commit: `cafb6da` (`docs(task-16): add process evidence documents`).
 
 ## Subagent Status
 
