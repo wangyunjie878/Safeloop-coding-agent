@@ -2235,7 +2235,7 @@ Expected: Docker image builds successfully.
 
 Actual local note: sandboxed attempt could not access Docker config; elevated retry reached Docker but failed because Docker Desktop daemon was not running (`dockerDesktopLinuxEngine` pipe missing). The GitHub Actions workflow still includes the Docker build job for CI verification.
 
-- [ ] **Step 6: Commit and log**
+- [x] **Step 6: Commit and log**
 
 ```bash
 git add SPEC_PROCESS.md AGENT_LOG.md REFLECTION.md README.md tests/test_process_docs.py PLAN.md

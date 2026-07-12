@@ -61,3 +61,9 @@ no matches
 - `REFLECTION.md` explicitly marks the final reflection as student-owned.
 - No real provider key or hosted cloud URL was added.
 - README points to checked-in CI definitions and states that no hosted WebUI URL is currently recorded.
+
+## Task Review
+
+- Reviewer Dewey found no Critical issues.
+- Important finding: Task16 Step 6 remained unchecked despite commit/log evidence.
+- Fix: mark Task16 Step 6 complete and clarify README CI evidence location after branch push.
