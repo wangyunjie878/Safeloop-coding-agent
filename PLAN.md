@@ -1234,7 +1234,7 @@ Update `PLAN.md` Task 8 with the commit hash and append an `AGENT_LOG.md` entry.
 - guardrail deny 分类为 `guardrail_blocked`。
 - 原始片段最长 1200 字符，并经过 redaction。
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # tests/test_feedback.py
@@ -2195,35 +2195,45 @@ def test_reflection_marks_human_owned_report():
     assert "Superpowers" in text
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_process_docs.py -v`
 
 Expected: FAIL until process documents contain required sections.
 
-- [ ] **Step 3: Write minimal documentation structure**
+Actual RED: `2 failed, 1 passed`; failures were missing exact `SPEC_PROCESS.md` phrase coverage and missing `REFLECTION.md`.
+
+- [x] **Step 3: Write minimal documentation structure**
 
 Create or update the process documents using real process evidence from this project. `REFLECTION.md` may contain headings and notes for the student to complete personally.
 
-- [ ] **Step 4: Run focused tests**
+- [x] **Step 4: Run focused tests**
 
 Run: `python -m pytest tests/test_process_docs.py -v`
 
 Expected: PASS.
 
-- [ ] **Step 5: Run final local verification**
+Actual: `3 passed`.
+
+- [x] **Step 5: Run final local verification**
 
 Run: `make test`
 
 Expected: PASS.
 
+Actual local note: blocked because GNU Make is not installed in this Windows shell; equivalent `python -m pytest -v` passed with `149 passed, 1 warning`.
+
 Run: `python -m safeloop demo`
 
 Expected: Exit 0 and output contains `guardrail_blocked`, `feedback_added`, and `finished`.
 
+Actual: exit `0`; output contained `guardrail_blocked`, `feedback_added`, and `finished`.
+
 Run: `docker build -t safeloop-agent .`
 
 Expected: Docker image builds successfully.
+
+Actual local note: sandboxed attempt could not access Docker config; elevated retry reached Docker but failed because Docker Desktop daemon was not running (`dockerDesktopLinuxEngine` pipe missing). The GitHub Actions workflow still includes the Docker build job for CI verification.
 
 - [ ] **Step 6: Commit and log**
 
@@ -2233,6 +2243,8 @@ git commit -m "docs(task-16): add process evidence documents"
 ```
 
 Update `PLAN.md` Task 16 with the commit hash and append the final `AGENT_LOG.md` entry.
+
+Implementation evidence: implementer Poincare was dispatched but timed out after leaving partial documentation edits; the controller completed the Task16 evidence updates and will record the final commit hash after commit. Pending commit hash.
 
 ---
 

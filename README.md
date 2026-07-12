@@ -65,6 +65,8 @@ make test
 
 GitHub Actions runs on every push and pull request, including documentation-only changes. It runs the unit tests, the offline demo, and the Docker build. GitLab CI provides a `unit-test` job running `python -m pytest`.
 
+Workflow definitions are checked in at `.github/workflows/ci.yml` and `.gitlab-ci.yml`. No hosted WebUI deployment URL is currently recorded in this repository.
+
 ## Known Limits
 
 The current command path supports the mock LLM only. The WebUI is intentionally minimal, and Docker distribution is local build/run support rather than a published registry image or hosted service.
