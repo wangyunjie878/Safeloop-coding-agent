@@ -2132,6 +2132,8 @@ Verification evidence: RED `python -m pytest tests/test_distribution_files.py -v
 
 Review-fix commit: `f877799` (`fix(task-15): harden docker context checks`) closes reviewer Sartre's Critical `.dockerignore` credential-copy risk and Important weak-test finding. RED: focused distribution tests failed on missing `.env`, then missing `.safeloop`. GREEN: focused distribution tests `5 passed`; full suite `146 passed, 1 warning`; secret scan found no matches.
 
+Re-review: reviewer Sartre confirmed the Critical and Important findings are fixed, found no new Critical or Important issues, and marked Task 15 ready to proceed to Task 16. Controller verification after re-review: `python -m pytest -v` -> `146 passed, 1 warning`; `python -m safeloop demo` -> exit `0`.
+
 ---
 
 ### Task 16: Process Documents and Final Acceptance Evidence

@@ -65,3 +65,9 @@ Controller fix:
 - RED: focused distribution tests failed because `.env` was absent, then failed because `.safeloop` was absent.
 - GREEN: focused `python -m pytest tests/test_distribution_files.py -v` -> `5 passed`; full `python -m pytest -v` -> `146 passed, 1 warning`; secret scan found no matches; `git diff --check` was clean except Windows LF-to-CRLF warnings.
 - Review-fix commit: `f877799` (`fix(task-15): harden docker context checks`).
+
+## Re-review
+
+Reviewer Sartre confirmed the original Critical and Important findings are fixed, found no new Critical or Important issues, and returned `Ready to proceed to Task 16? Yes`.
+
+Controller verification after re-review: `python -m pytest -v` -> `146 passed, 1 warning`; `python -m safeloop demo` -> exit `0`.
