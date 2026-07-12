@@ -1855,6 +1855,8 @@ Hash traceability note: the implementation hash was recorded in this follow-up e
 
 Review-fix commit: `b561d9d` (`fix(task-13): redact web run responses`) closes reviewer Descartes's Critical finding that Web run responses could echo configured runtime secrets through raw `RunRecord.task`. RED: focused Task 13 tests failed because `POST /api/runs` returned `alpha-token-123`. GREEN: focused Task 13 tests `9 passed, 1 warning`; full suite `141 passed, 1 warning`. The `tests/test_cli_bootstrap.py` update is part of the Task 13 CLI interface because `web` changed from placeholder to real `uvicorn` runner.
 
+Re-review: reviewer Maxwell confirmed the Descartes Critical is closed, `/api/demo` smoke coverage exists, the `web` CLI bootstrap update is within Task 13 scope, and there are no new Critical or Important issues. Controller verification after the fix: focused Task 13 tests `9 passed, 1 warning`; full suite `141 passed, 1 warning`; `git diff --check` clean; secret scan found no matches.
+
 ---
 
 ### Task 14: Credential Manager and DeepSeek Client

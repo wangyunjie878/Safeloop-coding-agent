@@ -28,3 +28,8 @@ Review fix:
 - Commit `b561d9d` (`fix(task-13): redact web run responses`) adds RED-first coverage for configured runtime secret redaction in create/get run responses, adds a `/api/demo` smoke test, stores run configs by run id, and redacts run response payloads with the same runtime secret source as events.
 - RED: `python -m pytest tests/test_web.py tests/test_cli_bootstrap.py -v` failed because `create_response.text` still contained `alpha-token-123`.
 - GREEN: `python -m pytest tests/test_web.py tests/test_cli_bootstrap.py -v` -> `9 passed, 1 warning`; `python -m pytest -v` -> `141 passed, 1 warning`.
+
+Re-review:
+- Reviewer Maxwell confirmed the Descartes Critical is closed, `/api/demo` has smoke coverage, and the `tests/test_cli_bootstrap.py` change is justified because Task 13 turns `web` into the real `uvicorn` runner.
+- Maxwell reported no Critical, Important, or blocking Minor findings and returned `Ready to proceed? Yes`.
+- Controller verification after re-review: focused Task 13 tests `9 passed, 1 warning`; full suite `141 passed, 1 warning`; `git diff --check` clean; secret scan found no matches.
