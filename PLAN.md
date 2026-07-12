@@ -2126,6 +2126,10 @@ git commit -m "chore(task-15): add ci docker and readme"
 
 Update `PLAN.md` Task 15 with the commit hash and append an `AGENT_LOG.md` entry.
 
+Implementation commit: `d8b964a` (`chore(task-15): add ci docker and readme`).
+
+Verification evidence: RED `python -m pytest tests/test_distribution_files.py -v` failed with 4 expected missing-file failures; focused GREEN `4 passed`; full suite `145 passed, 1 warning`; `python -m safeloop demo` exited `0`; `git diff --check` was clean except Windows LF-to-CRLF warnings; secret scan found no matches. Local `make test` could not run because GNU Make is not installed in this Windows shell, and local `docker build -t safeloop-agent .` could not reach Docker Desktop daemon. The GitHub Actions workflow added in this task runs `python -m pytest`, `python -m safeloop demo`, and `docker build -t safeloop-agent .` on every push and pull request, including documentation-only changes.
+
 ---
 
 ### Task 16: Process Documents and Final Acceptance Evidence

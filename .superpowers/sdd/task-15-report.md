@@ -4,6 +4,8 @@
 
 DONE_WITH_CONCERNS from implementer subagent Boole; controller continued verification and commit preparation.
 
+Implementation commit: `d8b964a` (`chore(task-15): add ci docker and readme`).
+
 ## Completed Files
 
 - `tests/test_distribution_files.py`
@@ -50,4 +52,4 @@ Result: 4 passed.
 ## Unfinished Items
 
 - Local Docker image build verification remains blocked until Docker Desktop daemon is running; CI is configured to perform the Docker build.
-- Requested commit `chore(task-15): add ci docker and readme` and its commit hash.
+- Follow-up traceability commit to record `d8b964a` in `PLAN.md` and `AGENT_LOG.md`.
