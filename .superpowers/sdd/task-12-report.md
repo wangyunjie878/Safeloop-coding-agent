@@ -30,3 +30,9 @@ Concerns:
 - The checked-in sample remains intentionally buggy; `python -m safeloop demo` copies it to a temporary workspace before applying the mock patch, so the repository sample is not mutated by the demo.
 - `make demo` could not be executed in this Windows shell because `make` is not installed; the target command `python -m safeloop demo` was verified directly.
 - WebUI remains a placeholder for Task 13.
+
+Review fix:
+- Reviewer Rawls found one Important spec issue: the documented interface `python -m safeloop run --config safeloop.yml --task "..." --llm mock` failed unless an extra `--mock-response` flag was supplied.
+- Commit `6111087` (`fix(task-12): allow default mock run`) adds a RED-first regression for the documented command and supplies a default mock `finish` response when no explicit mock script is passed.
+- RED: `python -m pytest tests/test_demo.py tests/test_cli_bootstrap.py -v` failed with `test_run_command_uses_default_mock_finish_response` returning exit code `2`.
+- GREEN: `python -m pytest tests/test_demo.py tests/test_cli_bootstrap.py -v` -> `7 passed`; `python -m safeloop run --config samples/python_buggy_calculator/safeloop.yml --task verify --llm mock` -> exit `0`, `final_status: finished`; `python -m pytest -v` -> `135 passed`.

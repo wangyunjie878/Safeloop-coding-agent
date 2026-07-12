@@ -1715,6 +1715,8 @@ Update `PLAN.md` Task 12 with the commit hash and append an `AGENT_LOG.md` entry
 
 Implementation commit: `5e11b3f` (`feat(task-12): add cli commands and mechanism demo`).
 
+Review-fix commit: `6111087` (`fix(task-12): allow default mock run`) addresses reviewer Rawls's Important finding that the documented `run --config ... --task ... --llm mock` interface required an undocumented `--mock-response`. RED: focused Task 12 tests failed because default mock run returned exit code `2`. GREEN: focused Task 12 tests `7 passed`; documented sample command exited `0` with `final_status: finished`; full suite `135 passed`.
+
 ---
 
 ### Task 13: FastAPI WebUI and JSON API
