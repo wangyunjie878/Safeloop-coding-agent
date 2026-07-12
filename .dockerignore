@@ -1,0 +1,9 @@
+.git
+.github
+.gitlab-ci.yml
+.pytest_cache
+.venv
+__pycache__
+*.pyc
+.superpowers
+.worktrees
