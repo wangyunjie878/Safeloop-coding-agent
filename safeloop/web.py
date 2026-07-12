@@ -8,11 +8,12 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 
-from safeloop.config import ConfigError, HarnessConfig, load_config
+from safeloop.config import ConfigError, HarnessConfig, collect_runtime_redaction_secrets, load_config
 from safeloop.demo import DEMO_RESPONSES, _sample_source
 from safeloop.events import EventLogStore
 from safeloop.llm.mock import MockLLMClient
 from safeloop.run_manager import RunManager, RunNotFoundError
+from safeloop.security.redaction import redact_secrets
 from safeloop.state_machine import AgentStateMachine
 
 
@@ -35,6 +36,7 @@ class DemoRequest(BaseModel):
 def _run_with_manager(
     manager: RunManager,
     store: EventLogStore,
+    run_configs: dict[str, HarnessConfig],
     task: str,
     config: HarnessConfig,
     mock_responses: list[str],
@@ -49,7 +51,16 @@ def _run_with_manager(
         llm_client=MockLLMClient(responses),
     )
     run = machine.run(task, config)
-    return run.model_dump(mode="json") | {"run_id": run.id}
+    run_configs[run.id] = config
+    return _run_response(run, config)
+
+
+def _run_response(run, config: HarnessConfig) -> dict[str, object]:
+    payload = run.model_dump(mode="json") | {"run_id": run.id}
+    redacted = redact_secrets(payload, known_secrets=collect_runtime_redaction_secrets(config))
+    if not isinstance(redacted, dict):
+        raise HTTPException(status_code=500, detail="could not serialize run")
+    return redacted
 
 
 def _load_config_for_api(config_path: str) -> HarnessConfig:
@@ -63,6 +74,7 @@ def create_app() -> FastAPI:
     app = FastAPI(title="SafeLoop")
     store = EventLogStore()
     manager = RunManager(event_store=store)
+    run_configs: dict[str, HarnessConfig] = {}
 
     @app.get("/health")
     def health() -> dict[str, str]:
@@ -81,14 +93,16 @@ def create_app() -> FastAPI:
     @app.post("/api/runs")
     def create_run(request: RunRequest) -> dict[str, object]:
         config = _load_config_for_api(request.config_path)
-        return _run_with_manager(manager, store, request.task, config, request.mock_responses)
+        return _run_with_manager(manager, store, run_configs, request.task, config, request.mock_responses)
 
     @app.get("/api/runs/{run_id}")
     def get_run(run_id: str) -> dict[str, object]:
         try:
-            return manager.get_run(run_id).model_dump(mode="json")
+            run = manager.get_run(run_id)
         except RunNotFoundError as exc:
             raise HTTPException(status_code=404, detail="run not found") from exc
+        config = run_configs[run_id]
+        return _run_response(run, config)
 
     @app.get("/api/runs/{run_id}/events")
     def get_events(run_id: str) -> list[dict[str, object]]:
@@ -118,6 +132,6 @@ def create_app() -> FastAPI:
                 encoding="utf-8",
             )
             config = load_config(config_path)
-            return _run_with_manager(manager, store, request.task, config, DEMO_RESPONSES)
+            return _run_with_manager(manager, store, run_configs, request.task, config, DEMO_RESPONSES)
 
     return app

@@ -51,6 +51,50 @@ def test_create_run_and_fetch_events(tmp_path: Path):
     assert client.get(f"/api/runs/{run_id}/events").status_code == 200
 
 
+def test_run_responses_redact_configured_runtime_secret(tmp_path: Path, monkeypatch):
+    monkeypatch.setenv("SAFELOOP_TEST_SECRET", "alpha-token-123")
+    config_path = tmp_path / "safeloop.yml"
+    config_path.write_text(
+        f"workspace: {tmp_path}\n"
+        "test_command: python -c \"print('ok')\"\n"
+        "llm_provider: mock\n"
+        "redaction_secret_env_vars:\n"
+        "  - SAFELOOP_TEST_SECRET\n",
+        encoding="utf-8",
+    )
+    client = TestClient(create_app())
+
+    create_response = client.post(
+        "/api/runs",
+        json={
+            "task": "verify alpha-token-123",
+            "config_path": str(config_path),
+            "mock_responses": [
+                '{"tool_name":"finish","arguments":{"message":"done"},"reason":"done","expected_outcome":"stop"}'
+            ],
+        },
+    )
+
+    assert create_response.status_code == 200
+    assert "alpha-token-123" not in create_response.text
+    assert "[REDACTED]" in create_response.text
+    run_id = create_response.json()["run_id"]
+    run_response = client.get(f"/api/runs/{run_id}")
+    assert run_response.status_code == 200
+    assert "alpha-token-123" not in run_response.text
+    assert "[REDACTED]" in run_response.text
+
+
+def test_demo_endpoint_returns_finished_run():
+    client = TestClient(create_app())
+
+    response = client.post("/api/demo", json={})
+
+    assert response.status_code == 200
+    assert response.json()["run_id"]
+    assert response.json()["status"] == "finished"
+
+
 def test_missing_run_returns_404():
     client = TestClient(create_app())
 
