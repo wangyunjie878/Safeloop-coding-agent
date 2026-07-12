@@ -2248,6 +2248,8 @@ Implementation evidence: implementer Poincare was dispatched but timed out after
 
 PR evidence: `feature/distribution-docs` was pushed and published as GitHub PR #7, `https://github.com/wangyunjie878/Safeloop-coding-agent/pull/7`, targeting base branch `feature/cli-web-demo`. The PR body records subagent ownership, controller/human interventions, validation commands, Docker verification, and credential notes.
 
+CI evidence: GitHub Actions CI run #4 passed on commit `efa6659`, `https://github.com/wangyunjie878/Safeloop-coding-agent/actions/runs/29193389510`.
+
 ---
 
 ## Review Gates for Every Task
@@ -2278,7 +2280,7 @@ Critical issues must be fixed before the next task starts.
 - [ ] `AGENT_LOG.md` records each task with timestamp, skill, prompt/context, subagent output or commit hash, human intervention and lesson.
 - [ ] `make test` passes locally.
 - [x] `python -m safeloop demo` deterministically shows guardrail block, feedback loop and successful finish.
-- [ ] GitHub Actions passes on the final push.
+- [x] GitHub Actions passes on the final push.
 - [ ] `.gitlab-ci.yml` includes a passing `unit-test` job.
 - [x] Docker image builds.
 - [x] README explains installation, running, Docker distribution, key security, safety boundaries, CI/CD and known limits.
