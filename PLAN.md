@@ -1849,7 +1849,9 @@ git commit -m "feat(task-13): add fastapi webui"
 
 Update `PLAN.md` Task 13 with the commit hash and append an `AGENT_LOG.md` entry.
 
-Implementation commit: pending until commit creation; record the actual hash in the follow-up traceability update because a commit cannot contain its own final hash.
+Implementation commit: `756639d` (`feat(task-13): add fastapi webui`).
+
+Hash traceability note: the implementation hash was recorded in this follow-up evidence update because a commit cannot contain its own final hash.
 
 ---
 

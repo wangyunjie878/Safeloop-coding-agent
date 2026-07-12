@@ -1,7 +1,7 @@
 Status: DONE_WITH_CONCERNS
 
 Commit hash(es):
-- pending until commit creation
+- `756639d` (`feat(task-13): add fastapi webui`)
 
 Test commands and results:
 - RED: `python -m pytest tests/test_web.py tests/test_cli_bootstrap.py -v` -> failed during collection with `ModuleNotFoundError: No module named 'safeloop.web'`.
@@ -19,4 +19,4 @@ Files changed:
 
 Concerns:
 - The test run emits `StarletteDeprecationWarning: Using httpx with starlette.testclient is deprecated; install httpx2 instead.` from the installed FastAPI/Starlette test client stack. This task did not change dependencies because `fastapi`, `uvicorn`, and `httpx` were already present.
-- The implementation commit hash will be recorded in a follow-up traceability update because a commit cannot include its own final hash.
+- The implementation hash was recorded in a follow-up traceability update because a commit cannot include its own final hash.
