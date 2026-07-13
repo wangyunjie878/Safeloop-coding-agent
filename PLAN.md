@@ -2432,7 +2432,7 @@ PR evidence: `feature/deepseek-chat-cli` was pushed and published as GitHub PR #
 
 ### Task 21: Information-Only Chat Answers
 
-**Status:** completed in commit `pending` (to be recorded after commit).
+**Status:** completed in commit `1b17fd4` (`fix(task-21): answer information-only chat requests`).
 
 **Goal:** 修复 SafeLoop chat 对“解释一下快速排序”这类问答请求也倾向于写文件的问题。信息型、解释型、概念型请求应直接用 `finish` 返回中文自然语言答案，不应创建或修改文件。
 
