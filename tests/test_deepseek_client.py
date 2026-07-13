@@ -49,6 +49,15 @@ def test_deepseek_client_accepts_explicit_model_override():
     assert client.complete(LLMRequest(task="Explain", feedback=[], memories=[], events=[])) == "ok"
 
 
+def test_deepseek_client_default_timeout_allows_slow_model_responses():
+    client = DeepSeekClient(api_key="sk-test")
+
+    try:
+        assert client.http_client.timeout.read == 60.0
+    finally:
+        client.http_client.close()
+
+
 def test_deepseek_client_prompt_describes_single_json_tool_action_contract():
     seen: dict[str, object] = {}
 
@@ -170,6 +179,17 @@ def test_deepseek_client_raises_clear_error_on_non_2xx_response():
     client = DeepSeekClient(api_key="sk-test", http_client=http_client)
 
     with pytest.raises(DeepSeekClientError, match="401"):
+        client.complete(LLMRequest(task="Explain", feedback=[], memories=[], events=[]))
+
+
+def test_deepseek_client_wraps_read_timeout_as_clear_error():
+    def handler(request: httpx.Request) -> httpx.Response:
+        raise httpx.ReadTimeout("slow response", request=request)
+
+    http_client = httpx.Client(transport=httpx.MockTransport(handler))
+    client = DeepSeekClient(api_key="sk-test", http_client=http_client)
+
+    with pytest.raises(DeepSeekClientError, match="timed out"):
         client.complete(LLMRequest(task="Explain", feedback=[], memories=[], events=[]))
 
 

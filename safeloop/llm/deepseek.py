@@ -12,6 +12,9 @@ class DeepSeekClientError(RuntimeError):
     pass
 
 
+_DEFAULT_TIMEOUT_SECONDS = 60.0
+
+
 class DeepSeekClient:
     def __init__(
         self,
@@ -23,18 +26,23 @@ class DeepSeekClient:
         self.api_key = api_key
         self.model = model
         self.base_url = base_url.rstrip("/")
-        self.http_client = http_client or httpx.Client()
+        self.http_client = http_client or httpx.Client(timeout=_DEFAULT_TIMEOUT_SECONDS)
 
     def complete(self, request: LLMRequest) -> str:
-        response = self.http_client.post(
-            f"{self.base_url}/chat/completions",
-            headers={"Authorization": f"Bearer {self.api_key}"},
-            json={
-                "model": self.model,
-                "messages": self._build_messages(request),
-                "stream": False,
-            },
-        )
+        try:
+            response = self.http_client.post(
+                f"{self.base_url}/chat/completions",
+                headers={"Authorization": f"Bearer {self.api_key}"},
+                json={
+                    "model": self.model,
+                    "messages": self._build_messages(request),
+                    "stream": False,
+                },
+            )
+        except httpx.TimeoutException as exc:
+            raise DeepSeekClientError("DeepSeek request timed out; retry or use a shorter task") from exc
+        except httpx.RequestError as exc:
+            raise DeepSeekClientError(f"DeepSeek request failed: {exc}") from exc
 
         if response.status_code < 200 or response.status_code >= 300:
             raise DeepSeekClientError(f"DeepSeek request failed with status {response.status_code}")

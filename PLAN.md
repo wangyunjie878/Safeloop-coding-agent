@@ -2369,6 +2369,34 @@ PR evidence: `feature/deepseek-chat-cli` was pushed and published as GitHub PR #
 
 ---
 
+### Task 19: DeepSeek Timeout Hardening
+
+**Status:** implementation complete locally; commit hash to be recorded after commit.
+
+**Goal:** 修复真实 DeepSeek 调用在生成代码时偶发 `ReadTimeout` 导致整轮 `Task failed` 的问题。SafeLoop 应给真实 LLM 更合理的默认响应时间，并把 provider/network timeout 包装成清楚的 `DeepSeekClientError`。
+
+**Files:**
+
+- Modify: `safeloop/llm/deepseek.py`
+- Modify: `tests/test_deepseek_client.py`
+- Modify: `PLAN.md`
+- Modify: `AGENT_LOG.md`
+
+**TDD evidence:**
+
+- RED: `python -m pytest tests/test_deepseek_client.py::test_deepseek_client_default_timeout_allows_slow_model_responses tests/test_deepseek_client.py::test_deepseek_client_wraps_read_timeout_as_clear_error -q` -> 2 failed. Failures showed default `httpx` read timeout was `5.0` seconds and raw `httpx.ReadTimeout` escaped the client boundary.
+- GREEN: same focused command -> `2 passed`.
+- Focused verification: `python -m pytest tests/test_deepseek_client.py -q` -> `10 passed`.
+- Full verification: `python -m pytest -q` -> `158 passed, 1 warning`.
+
+**Implementation notes:**
+
+- `DeepSeekClient` now creates the default `httpx.Client(timeout=60.0)` when no injected test client is provided.
+- `httpx.TimeoutException` is wrapped as `DeepSeekClientError("DeepSeek request timed out; retry or use a shorter task")`.
+- Other `httpx.RequestError` failures are also wrapped as `DeepSeekClientError` so the state machine records a clear provider boundary error instead of leaking raw transport exceptions.
+
+---
+
 ## Review Gates for Every Task
 
 Each task must pass two review gates before moving to the next task:
