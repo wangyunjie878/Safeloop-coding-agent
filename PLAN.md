@@ -2399,7 +2399,7 @@ PR evidence: `feature/deepseek-chat-cli` was pushed and published as GitHub PR #
 
 ### Task 20: Chinese Chat UX, Long Timeout, and Interrupt Handling
 
-**Status:** implementation complete locally; commit hash to be recorded after commit.
+**Status:** completed in commit `74a0afc` (`feat(task-20): localize chat and handle interrupts`).
 
 **Goal:** 让 SafeLoop chat 更符合中文用户的自然使用习惯：CLI 提示和摘要使用中文，DeepSeek `finish.message` 被提示为中文自然语言，真实模型默认 timeout 提升到 600 秒，并支持任务运行中按 `Ctrl+C` 只终止当前任务、不退出 SafeLoop。
 
