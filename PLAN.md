@@ -2456,6 +2456,32 @@ PR evidence: `feature/deepseek-chat-cli` was pushed and published as GitHub PR #
 
 ---
 
+### Task 22: README Delivery Sections and Distribution Notes
+
+**Status:** completed in commit `pending` (to be recorded after commit).
+
+**Goal:** 补齐最终交付要求中的 README 章节，明确项目简介、安装、运行、分发命令、目录结构、安全边界说明、获取方式、Key 安全配置和已知限制。
+
+**Files:**
+
+- Modify: `README.md`
+- Modify: `tests/test_distribution_files.py`
+- Modify: `PLAN.md`
+- Modify: `AGENT_LOG.md`
+
+**TDD evidence:**
+
+- RED: `python -m pytest tests/test_distribution_files.py::test_readme_has_chinese_delivery_sections_and_distribution_notes -q` -> 1 failed. Failure showed README did not contain `项目简介`.
+- GREEN: same focused command -> `1 passed`.
+- Focused verification: `python -m pytest tests/test_distribution_files.py tests/test_process_docs.py -q` -> `9 passed`.
+
+**Implementation notes:**
+
+- README now includes Chinese delivery sections matching the assignment wording while preserving the original English headings.
+- Distribution notes now include GitHub clone/ZIP acquisition, Docker build/run commands, local CLI install/run commands, target platform notes, key storage/update options, and known limitations.
+
+---
+
 ## Review Gates for Every Task
 
 Each task must pass two review gates before moving to the next task:

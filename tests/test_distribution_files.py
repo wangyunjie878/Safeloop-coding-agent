@@ -21,6 +21,23 @@ def test_readme_has_required_sections():
         assert heading in text
 
 
+def test_readme_has_chinese_delivery_sections_and_distribution_notes():
+    text = Path("README.md").read_text(encoding="utf-8")
+
+    for phrase in [
+        "项目简介",
+        "安装",
+        "运行",
+        "分发命令",
+        "目录结构",
+        "安全边界说明",
+        "获取方式",
+        "Key 安全配置",
+        "已知限制",
+    ]:
+        assert phrase in text
+
+
 def test_gitlab_ci_has_unit_test_job():
     data = yaml.load(Path(".gitlab-ci.yml").read_text(encoding="utf-8"), Loader=yaml.BaseLoader)
 
