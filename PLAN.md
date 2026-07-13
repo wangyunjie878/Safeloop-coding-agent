@@ -2484,7 +2484,7 @@ PR evidence: `feature/deepseek-chat-cli` was pushed and published as GitHub PR #
 
 ### Task 23: README Chinese-First Install and Run Flow
 
-**Status:** completed; implementation commit hash to be recorded after commit.
+**Status:** completed in commit `e0120a7` (`docs(task-23): clarify readme install and run flow`).
 
 **Goal:** 按用户反馈修正 README 可读性：不要把 Docker 放在安装运行主流程里强调；安装和运行说明必须中文优先，并清除中间整段英文 Running 文案。
 
