@@ -8,7 +8,7 @@ from safeloop.config import load_config
 from safeloop.events import EventLogStore
 from safeloop.llm.base import LLMClient
 from safeloop.llm.mock import MockLLMClient
-from safeloop.models import Event, RunRecord
+from safeloop.models import Event, HarnessConfig, RunRecord
 from safeloop.run_manager import RunManager
 from safeloop.state_machine import AgentStateMachine
 
@@ -51,6 +51,14 @@ def _sample_source() -> Path:
 
 def run_harness_with_client(task: str, config_path: Path | str, llm_client: LLMClient) -> tuple[RunRecord, list[Event]]:
     config = load_config(config_path)
+    return run_harness_with_config(task, config, llm_client)
+
+
+def run_harness_with_config(
+    task: str,
+    config: HarnessConfig,
+    llm_client: LLMClient,
+) -> tuple[RunRecord, list[Event]]:
     store = EventLogStore()
     manager = RunManager(event_store=store)
     machine = AgentStateMachine(
@@ -81,7 +89,71 @@ def print_run_summary(run: RunRecord, events: list[Event]) -> None:
             detail = f" {event.payload.get('tool_name', '')} success={event.payload.get('success', '')}"
         elif event.type == "finished":
             detail = f" {event.payload.get('message', '')}"
+        elif event.type == "failed":
+            reason = event.payload.get("reason", "")
+            error = event.payload.get("error", "")
+            detail = f" {reason} {error}".rstrip()
         print(f"- step={event.step} type={event.type}{detail}")
+
+
+def print_chat_summary(run: RunRecord, events: list[Event]) -> None:
+    if run.status == "finished":
+        message = _latest_event_message(events, "finished") or "Done."
+        print(message)
+    elif run.status == "failed":
+        print("Task failed.")
+        failure = _latest_event(events, "failed")
+        if failure is not None:
+            reason = failure.payload.get("reason")
+            error = failure.payload.get("error")
+            if reason:
+                print(f"Reason: {reason}")
+            if error:
+                print(f"Error: {error}")
+    else:
+        print(f"Task ended with status: {run.status}.")
+
+    changed_files = _successful_tool_summaries(events, {"write_file", "patch_file"})
+    if changed_files:
+        print("Changed files:")
+        for summary in changed_files:
+            print(f"- {summary}")
+
+    checks = _successful_tool_summaries(events, {"run_command", "run_tests"})
+    if checks:
+        print("Verification:")
+        for summary in checks:
+            print(f"- {summary}")
+
+
+def _latest_event(events: list[Event], event_type: str) -> Event | None:
+    for event in reversed(events):
+        if event.type == event_type:
+            return event
+    return None
+
+
+def _latest_event_message(events: list[Event], event_type: str) -> str:
+    event = _latest_event(events, event_type)
+    if event is None:
+        return ""
+    value = event.payload.get("message", "")
+    return str(value)
+
+
+def _successful_tool_summaries(events: list[Event], tool_names: set[str]) -> list[str]:
+    summaries: list[str] = []
+    for event in events:
+        if event.type != "tool_result":
+            continue
+        if event.payload.get("tool_name") not in tool_names:
+            continue
+        if event.payload.get("success") is not True:
+            continue
+        summary = str(event.payload.get("summary", "")).strip()
+        if summary:
+            summaries.append(summary)
+    return summaries
 
 
 def run_demo() -> int:

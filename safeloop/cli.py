@@ -7,10 +7,11 @@ from pathlib import Path
 import sys
 
 from . import __version__
-from .config import load_config
+from .config import default_config_for_workspace, load_config
 from .credentials import CredentialError, CredentialManager
-from .demo import print_run_summary, run_demo, run_harness, run_harness_with_client
+from .demo import print_chat_summary, print_run_summary, run_demo, run_harness, run_harness_with_config
 from .llm.deepseek import DeepSeekClient
+from .models import HarnessConfig
 
 
 _DEFAULT_MOCK_FINISH_RESPONSE = (
@@ -38,7 +39,8 @@ def _build_parser() -> argparse.ArgumentParser:
 
     run_parser = subparsers.add_parser("run", help="Run a task from a SafeLoop config")
     run_parser.set_defaults(command="run")
-    run_parser.add_argument("--config", required=True)
+    run_parser.add_argument("--config")
+    run_parser.add_argument("--workspace")
     run_parser.add_argument("--task", required=True)
     run_parser.add_argument("--llm", choices=("mock", "deepseek"))
     run_parser.add_argument("--model")
@@ -48,7 +50,8 @@ def _build_parser() -> argparse.ArgumentParser:
 
     chat_parser = subparsers.add_parser("chat", help="Chat with SafeLoop in the terminal")
     chat_parser.set_defaults(command="chat")
-    chat_parser.add_argument("--config", required=True)
+    chat_parser.add_argument("--config")
+    chat_parser.add_argument("--workspace")
     chat_parser.add_argument("--llm", choices=("mock", "deepseek"))
     chat_parser.add_argument("--model")
     chat_parser.add_argument("--credential-backend", choices=("keyring", "env", "dotenv"))
@@ -79,30 +82,40 @@ def _placeholder_command(name: str) -> int:
 
 
 def _run_command(args: argparse.Namespace) -> int:
-    config_path = Path(args.config)
-    llm_provider = _resolve_llm_provider(config_path, args.llm)
+    config = _resolve_runtime_config(args)
+    llm_provider = config.llm_provider
     if llm_provider == "deepseek":
-        llm_client = _build_deepseek_client(config_path, args)
+        llm_client = _build_deepseek_client(config, args)
         if llm_client is None:
             return 1
-        run, events = run_harness_with_client(args.task, config_path, llm_client)
+        run, events = run_harness_with_config(args.task, config, llm_client)
         print_run_summary(run, events)
         return 0 if run.status == "finished" else 1
 
     mock_responses = list(args.mock_response) or [_DEFAULT_MOCK_FINISH_RESPONSE]
-    run, events = run_harness(args.task, config_path, mock_responses)
+    if args.config:
+        run, events = run_harness(args.task, Path(args.config), mock_responses)
+    else:
+        from .llm.mock import MockLLMClient
+
+        run, events = run_harness_with_config(args.task, config, MockLLMClient(mock_responses))
     print_run_summary(run, events)
     return 0 if run.status == "finished" else 1
 
 
-def _resolve_llm_provider(config_path: Path, explicit_provider: str | None) -> str:
-    if explicit_provider:
-        return explicit_provider
-    return load_config(config_path).llm_provider
+def _resolve_runtime_config(args: argparse.Namespace) -> HarnessConfig:
+    if args.config:
+        config = load_config(Path(args.config))
+    else:
+        workspace = Path(args.workspace) if args.workspace else Path.cwd()
+        config = default_config_for_workspace(workspace, llm_provider=args.llm or "mock")
+
+    if args.llm and args.llm != config.llm_provider:
+        config = config.model_copy(update={"llm_provider": args.llm})
+    return config
 
 
-def _build_deepseek_client(config_path: Path, args: argparse.Namespace) -> DeepSeekClient | None:
-    config = load_config(config_path)
+def _build_deepseek_client(config: HarnessConfig, args: argparse.Namespace) -> DeepSeekClient | None:
     backend = args.credential_backend or config.credential_backend
     manager = CredentialManager(backend=backend, dotenv_path=args.dotenv_path)
     try:
@@ -120,8 +133,8 @@ def _build_deepseek_client(config_path: Path, args: argparse.Namespace) -> DeepS
 
 
 def _run_chat_command(args: argparse.Namespace) -> int:
-    config_path = Path(args.config)
-    llm_provider = _resolve_llm_provider(config_path, args.llm)
+    config = _resolve_runtime_config(args)
+    llm_provider = config.llm_provider
     print("SafeLoop CLI chat")
     print("Type exit or quit to stop.")
 
@@ -138,14 +151,19 @@ def _run_chat_command(args: argparse.Namespace) -> int:
             continue
 
         if llm_provider == "deepseek":
-            llm_client = _build_deepseek_client(config_path, args)
+            llm_client = _build_deepseek_client(config, args)
             if llm_client is None:
                 return 1
-            run, events = run_harness_with_client(task, config_path, llm_client)
+            run, events = run_harness_with_config(task, config, llm_client)
         else:
             mock_responses = list(args.mock_response) or [_DEFAULT_MOCK_FINISH_RESPONSE]
-            run, events = run_harness(task, config_path, mock_responses)
-        print_run_summary(run, events)
+            if args.config:
+                run, events = run_harness(task, Path(args.config), mock_responses)
+            else:
+                from .llm.mock import MockLLMClient
+
+                run, events = run_harness_with_config(task, config, MockLLMClient(mock_responses))
+        print_chat_summary(run, events)
 
 
 def _run_web_command(args: argparse.Namespace) -> int:

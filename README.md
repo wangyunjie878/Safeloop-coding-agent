@@ -30,21 +30,25 @@ Configure a user-owned DeepSeek key, then run a real-model task:
 
 ```bash
 python -m safeloop credentials set --provider deepseek
-python -m safeloop run --config safeloop.yml --task "fix the failing tests" --llm deepseek
+cd path/to/your/project
+python -m safeloop run --task "fix the failing tests" --llm deepseek
 ```
 
 Start the simple opencode-style terminal loop:
 
 ```bash
-python -m safeloop chat --config safeloop.yml --llm deepseek
+cd path/to/your/project
+python -m safeloop chat --llm deepseek
 ```
+
+By default, `run` and `chat` use the directory you are currently in as the workspace. Use `--workspace path/to/project` when you want to target a different directory, or `--config safeloop.yml` when you need project-specific settings such as a custom test command, blocked commands, timeouts, or model defaults.
 
 For machines where OS keyring is not available, use an environment variable or a local `.env` file that is never committed:
 
 ```bash
 set DEEPSEEK_API_KEY=your-key-here
-python -m safeloop chat --config safeloop.yml --llm deepseek --credential-backend env
-python -m safeloop chat --config safeloop.yml --llm deepseek --credential-backend dotenv --dotenv-path .env
+python -m safeloop chat --llm deepseek --credential-backend env
+python -m safeloop chat --llm deepseek --credential-backend dotenv --dotenv-path .env
 ```
 
 Start the WebUI locally:
@@ -96,4 +100,4 @@ Workflow definitions are checked in at `.github/workflows/ci.yml` and `.gitlab-c
 
 ## Known Limits
 
-The CLI supports mock and DeepSeek-backed runs. The `chat` command is intentionally simple: each user message starts one bounded harness run, prints the event summary, and waits for the next message. The WebUI is intentionally minimal, and Docker distribution is local build/run support rather than a published registry image or hosted service.
+The CLI supports mock and DeepSeek-backed runs. The `chat` command is intentionally simple: each user message starts one bounded harness run, prints a user-facing summary, and waits for the next message. The `run` command still prints mechanism events for deterministic demos and grading evidence. The WebUI is intentionally minimal, and Docker distribution is local build/run support rather than a published registry image or hosted service.

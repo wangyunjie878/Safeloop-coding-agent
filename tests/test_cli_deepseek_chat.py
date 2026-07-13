@@ -27,6 +27,30 @@ class _FakeDeepSeekClient:
         )
 
 
+class _WorkspaceDeepSeekClient:
+    created: list["_WorkspaceDeepSeekClient"] = []
+
+    def __init__(self, api_key: str, model: str, base_url: str = "https://api.deepseek.com") -> None:
+        self.api_key = api_key
+        self.model = model
+        self.base_url = base_url
+        self.responses = [
+            (
+                '{"tool_name":"write_file","arguments":{"path":"count_primes.py",'
+                '"content":"print(17)\\n"},"reason":"create requested code",'
+                '"expected_outcome":"file is written"}'
+            ),
+            (
+                '{"tool_name":"finish","arguments":{"message":"created count_primes.py"},'
+                '"reason":"task complete","expected_outcome":"stop"}'
+            ),
+        ]
+        _WorkspaceDeepSeekClient.created.append(self)
+
+    def complete(self, request) -> str:
+        return self.responses.pop(0)
+
+
 def _write_config(tmp_path: Path, *, credential_backend: str = "env", model: str = "deepseek-v4-pro") -> Path:
     config_path = tmp_path / "safeloop.yml"
     config_path.write_text(
@@ -128,6 +152,27 @@ def test_chat_command_runs_one_deepseek_turn_then_exits(
     output = capsys.readouterr().out
     assert exit_code == 0
     assert "SafeLoop CLI chat" in output
-    assert "final_status: finished" in output
+    assert "deepseek run complete" in output
+    assert "final_status:" not in output
     assert _FakeDeepSeekClient.created[0]["model"] == "deepseek-v4-flash"
     assert _FakeDeepSeekClient.created[0]["client"].requests == ["inspect failing tests"]
+
+
+def test_chat_without_config_uses_current_directory_as_workspace(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "sk-chat-cli")
+    monkeypatch.setattr(cli, "DeepSeekClient", _WorkspaceDeepSeekClient)
+    inputs = iter(["write a prime counter", "exit"])
+    monkeypatch.setattr("builtins.input", lambda prompt="": next(inputs))
+
+    exit_code = cli.main(["chat", "--llm", "deepseek", "--credential-backend", "env"])
+
+    output = capsys.readouterr().out
+    assert exit_code == 0
+    assert (tmp_path / "count_primes.py").read_text(encoding="utf-8") == "print(17)\n"
+    assert "created count_primes.py" in output
+    assert "final_status:" not in output

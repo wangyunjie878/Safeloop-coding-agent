@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from pathlib import Path
 import os
+from pathlib import Path
 from typing import Any
 
 import yaml
@@ -14,9 +14,12 @@ class ConfigError(ValueError):
     pass
 
 
-def resolve_workspace(path: Path | str) -> Path:
+def resolve_workspace(path: Path | str, base_dir: Path | None = None) -> Path:
     try:
-        return Path(path).expanduser().resolve()
+        candidate = Path(path).expanduser()
+        if not candidate.is_absolute() and base_dir is not None:
+            candidate = base_dir / candidate
+        return candidate.resolve()
     except (TypeError, ValueError, OSError) as exc:
         raise ConfigError(f"workspace: invalid path value {path!r}") from exc
 
@@ -56,7 +59,8 @@ def _normalize_config(data: dict[str, Any], source: Path) -> dict[str, Any]:
     if "workspace" not in data:
         raise ConfigError(f"{source}: missing required field workspace")
 
-    workspace = resolve_workspace(data["workspace"])
+    source_path = source.expanduser().resolve()
+    workspace = resolve_workspace(data["workspace"], source_path.parent)
     if not workspace.exists():
         raise ConfigError(f"workspace does not exist: {workspace}")
     if not workspace.is_dir():
@@ -96,6 +100,30 @@ def load_config(path: Path | str) -> HarnessConfig:
 
     try:
         return HarnessConfig.model_validate(normalized)
+    except ValidationError as exc:
+        raise ConfigError(_format_validation_error(exc)) from exc
+
+
+def default_config_for_workspace(
+    workspace: Path | str,
+    *,
+    llm_provider: str = "mock",
+) -> HarnessConfig:
+    resolved_workspace = resolve_workspace(workspace)
+    if not resolved_workspace.exists():
+        raise ConfigError(f"workspace does not exist: {resolved_workspace}")
+    if not resolved_workspace.is_dir():
+        raise ConfigError(f"workspace must be an existing directory: {resolved_workspace}")
+
+    try:
+        return HarnessConfig.model_validate(
+            {
+                "workspace": resolved_workspace,
+                "allowed_paths": [resolved_workspace],
+                "test_command": "python -m pytest",
+                "llm_provider": llm_provider,
+            }
+        )
     except ValidationError as exc:
         raise ConfigError(_format_validation_error(exc)) from exc
 

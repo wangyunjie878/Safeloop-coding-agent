@@ -2328,6 +2328,47 @@ PR evidence: `feature/deepseek-chat-cli` was pushed and published as GitHub PR #
 
 ---
 
+### Task 18: CLI Workspace UX and Failure Visibility
+
+**Status:** implementation complete locally; commit hash to be recorded in follow-up traceability entry after commit.
+
+**Goal:** 让 SafeLoop 更接近 opencode-style CLI：用户 `cd` 到项目目录后直接运行 `python -m safeloop chat --llm deepseek`，默认在当前目录读写代码；同时让 `chat` 输出自然语言摘要，并在 boundary failure 时显示具体错误原因。
+
+**Files:**
+
+- Modify: `safeloop/config.py`
+- Modify: `safeloop/demo.py`
+- Modify: `safeloop/cli.py`
+- Modify: `tests/test_config.py`
+- Modify: `tests/test_demo.py`
+- Modify: `tests/test_cli_deepseek_chat.py`
+- Modify: `README.md`
+- Modify: `PLAN.md`
+- Modify: `AGENT_LOG.md`
+
+**Dependencies:**
+
+- Depends on Task 11 state machine terminal failure handling.
+- Depends on Task 14 DeepSeek client and credential manager.
+- Depends on Task 17 DeepSeek CLI chat wiring.
+
+**TDD evidence:**
+
+- RED: `python -m pytest tests/test_config.py::test_load_config_resolves_relative_workspace_from_config_directory tests/test_demo.py::test_print_run_summary_shows_failed_boundary_error tests/test_cli_deepseek_chat.py::test_chat_without_config_uses_current_directory_as_workspace -q` -> 3 failed. Failures showed config-relative `workspace: .` resolved against process cwd, failed summaries omitted `boundary_error`, and `chat` still required `--config`.
+- GREEN: same focused command -> `3 passed`.
+- RED: `python -m pytest tests/test_cli_deepseek_chat.py::test_chat_command_runs_one_deepseek_turn_then_exits tests/test_cli_deepseek_chat.py::test_chat_without_config_uses_current_directory_as_workspace -q` -> 2 failed because chat still printed `final_status` event logs.
+- GREEN: same focused command -> `2 passed`.
+- Full verification: `python -m pytest -q` -> `156 passed, 1 warning`.
+
+**Implementation notes:**
+
+- `load_config()` now resolves relative `workspace` values against the config file directory, so sample configs no longer accidentally target the caller's process cwd.
+- Added default runtime config creation for config-less CLI runs. If `--config` is absent, `run` and `chat` use `--workspace` when provided, otherwise `Path.cwd()`.
+- `chat` now prints a user-facing summary with finish message, changed-file summaries, verification summaries, or boundary failure reason/error. `run` keeps raw event output for mechanism demos and grader evidence.
+- README now documents the recommended workflow as `cd path/to/project` followed by `python -m safeloop chat --llm deepseek`.
+
+---
+
 ## Review Gates for Every Task
 
 Each task must pass two review gates before moving to the next task:
