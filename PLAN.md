@@ -2371,7 +2371,7 @@ PR evidence: `feature/deepseek-chat-cli` was pushed and published as GitHub PR #
 
 ### Task 19: DeepSeek Timeout Hardening
 
-**Status:** implementation complete locally; commit hash to be recorded after commit.
+**Status:** completed in commit `d7e98a0` (`fix(task-19): harden deepseek timeouts`).
 
 **Goal:** 修复真实 DeepSeek 调用在生成代码时偶发 `ReadTimeout` 导致整轮 `Task failed` 的问题。SafeLoop 应给真实 LLM 更合理的默认响应时间，并把 provider/network timeout 包装成清楚的 `DeepSeekClientError`。
 
