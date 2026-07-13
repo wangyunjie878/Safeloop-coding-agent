@@ -2482,6 +2482,33 @@ PR evidence: `feature/deepseek-chat-cli` was pushed and published as GitHub PR #
 
 ---
 
+### Task 23: README Chinese-First Install and Run Flow
+
+**Status:** completed; implementation commit hash to be recorded after commit.
+
+**Goal:** 按用户反馈修正 README 可读性：不要把 Docker 放在安装运行主流程里强调；安装和运行说明必须中文优先，并清除中间整段英文 Running 文案。
+
+**Files:**
+
+- Modify: `README.md`
+- Modify: `tests/test_distribution_files.py`
+- Modify: `PLAN.md`
+- Modify: `AGENT_LOG.md`
+
+**TDD evidence:**
+
+- RED: `python -m pytest tests/test_distribution_files.py -q` -> `1 failed, 6 passed`。失败点为 README 缺少 `普通使用安装` 等中文安装运行说明。
+- GREEN: `python -m pytest tests/test_distribution_files.py -q` -> `7 passed`。README 已改为中文优先结构，并断言原英文-only Running 句子不再出现。
+
+**Implementation notes:**
+
+- README 合并为一套中文优先章节，保留英文 heading alias 以便读者和测试都能定位。
+- 安装部分区分普通使用 `python -m pip install -e .` 与开发/测试 `python -m pip install -e ".[dev]"`。
+- 运行部分把 `cd path/to/your/project` + `python -m safeloop chat --llm deepseek` 放在第一入口。
+- Docker 只保留在“分发命令”中，并明确它不是日常 CLI 使用的主入口。
+
+---
+
 ## Review Gates for Every Task
 
 Each task must pass two review gates before moving to the next task:

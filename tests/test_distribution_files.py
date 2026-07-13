@@ -38,6 +38,30 @@ def test_readme_has_chinese_delivery_sections_and_distribution_notes():
         assert phrase in text
 
 
+def test_readme_install_and_run_flow_is_chinese_first():
+    text = Path("README.md").read_text(encoding="utf-8")
+
+    for phrase in [
+        "普通使用安装",
+        "开发或跑测试安装",
+        "进入你要让 agent 操作的代码目录",
+        "python -m pip install -e .",
+        "python -m pip install -e \".[dev]\"",
+        "python -m safeloop chat --llm deepseek",
+        "Docker 不是日常 CLI 使用的主入口",
+    ]:
+        assert phrase in text
+
+    for english_only_phrase in [
+        "Run the deterministic mechanism demo",
+        "Run one CLI task with the offline mock LLM",
+        "Configure a user-owned DeepSeek key",
+        "Start the simple opencode-style terminal loop",
+        "Chat mode prints Chinese user-facing output",
+    ]:
+        assert english_only_phrase not in text
+
+
 def test_gitlab_ci_has_unit_test_job():
     data = yaml.load(Path(".gitlab-ci.yml").read_text(encoding="utf-8"), Loader=yaml.BaseLoader)
 
