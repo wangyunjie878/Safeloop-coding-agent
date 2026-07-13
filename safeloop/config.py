@@ -1,0 +1,139 @@
+from __future__ import annotations
+
+import os
+from pathlib import Path
+from typing import Any
+
+import yaml
+from pydantic import ValidationError
+
+from .models import HarnessConfig
+
+
+class ConfigError(ValueError):
+    pass
+
+
+def resolve_workspace(path: Path | str, base_dir: Path | None = None) -> Path:
+    try:
+        candidate = Path(path).expanduser()
+        if not candidate.is_absolute() and base_dir is not None:
+            candidate = base_dir / candidate
+        return candidate.resolve()
+    except (TypeError, ValueError, OSError) as exc:
+        raise ConfigError(f"workspace: invalid path value {path!r}") from exc
+
+
+def _resolve_path_value(value: Any, workspace: Path, field_name: str) -> Path:
+    try:
+        candidate = Path(value).expanduser()
+        if not candidate.is_absolute():
+            candidate = workspace / candidate
+        return candidate.resolve()
+    except (TypeError, ValueError, OSError) as exc:
+        raise ConfigError(f"{field_name}: invalid path value {value!r}") from exc
+
+
+def _ensure_within_workspace(path: Path, workspace: Path, field_name: str) -> Path:
+    try:
+        path.relative_to(workspace)
+    except ValueError as exc:
+        raise ConfigError(f"{field_name}: path must stay within workspace: {path}") from exc
+    return path
+
+
+def _resolve_path_list(values: Any, workspace: Path, field_name: str) -> list[Path]:
+    if values is None:
+        return []
+    if not isinstance(values, list):
+        raise ConfigError(f"{field_name} must be a list of paths")
+
+    resolved: list[Path] = []
+    for value in values:
+        resolved_path = _resolve_path_value(value, workspace, field_name)
+        resolved.append(_ensure_within_workspace(resolved_path, workspace, field_name))
+    return resolved
+
+
+def _normalize_config(data: dict[str, Any], source: Path) -> dict[str, Any]:
+    if "workspace" not in data:
+        raise ConfigError(f"{source}: missing required field workspace")
+
+    source_path = source.expanduser().resolve()
+    workspace = resolve_workspace(data["workspace"], source_path.parent)
+    if not workspace.exists():
+        raise ConfigError(f"workspace does not exist: {workspace}")
+    if not workspace.is_dir():
+        raise ConfigError(f"workspace must be an existing directory: {workspace}")
+
+    normalized = dict(data)
+    normalized["workspace"] = workspace
+    normalized["allowed_paths"] = _resolve_path_list(data.get("allowed_paths"), workspace, "allowed_paths")
+    normalized["blocked_paths"] = _resolve_path_list(data.get("blocked_paths"), workspace, "blocked_paths")
+    return normalized
+
+
+def _format_validation_error(error: ValidationError) -> str:
+    pieces = []
+    for item in error.errors():
+        loc = ".".join(str(part) for part in item["loc"])
+        pieces.append(f"{loc}: {item['msg']}")
+    return "; ".join(pieces)
+
+
+def load_config(path: Path | str) -> HarnessConfig:
+    config_path = Path(path)
+    try:
+        raw_text = config_path.read_text(encoding="utf-8")
+    except OSError as exc:
+        raise ConfigError(f"could not read config: {config_path}") from exc
+
+    try:
+        data = yaml.safe_load(raw_text) or {}
+    except yaml.YAMLError as exc:
+        raise ConfigError(f"{config_path}: invalid YAML") from exc
+
+    if not isinstance(data, dict):
+        raise ConfigError(f"{config_path}: config must be a mapping")
+
+    normalized = _normalize_config(data, config_path)
+
+    try:
+        return HarnessConfig.model_validate(normalized)
+    except ValidationError as exc:
+        raise ConfigError(_format_validation_error(exc)) from exc
+
+
+def default_config_for_workspace(
+    workspace: Path | str,
+    *,
+    llm_provider: str = "mock",
+) -> HarnessConfig:
+    resolved_workspace = resolve_workspace(workspace)
+    if not resolved_workspace.exists():
+        raise ConfigError(f"workspace does not exist: {resolved_workspace}")
+    if not resolved_workspace.is_dir():
+        raise ConfigError(f"workspace must be an existing directory: {resolved_workspace}")
+
+    try:
+        return HarnessConfig.model_validate(
+            {
+                "workspace": resolved_workspace,
+                "allowed_paths": [resolved_workspace],
+                "test_command": "python -m pytest",
+                "llm_provider": llm_provider,
+            }
+        )
+    except ValidationError as exc:
+        raise ConfigError(_format_validation_error(exc)) from exc
+
+
+def collect_runtime_redaction_secrets(config: HarnessConfig) -> list[str]:
+    secrets: list[str] = []
+    seen: set[str] = set()
+    for env_var_name in config.redaction_secret_env_vars:
+        value = os.environ.get(env_var_name)
+        if value and value not in seen:
+            secrets.append(value)
+            seen.add(value)
+    return secrets

@@ -12,6 +12,13 @@
 - 实现计划：[PLAN.md](./PLAN.md)
 - 当前流程阶段：`SPEC.md`、`PLAN.md`、`SPEC_PROCESS.md` 已生成；第 4.5 节冷启动验证已执行，并已将反馈修订回 `SPEC.md` 与 `PLAN.md`。
 
+## Task 16 验收索引
+
+- brainstorming 关键节点：见第 2 节，记录从项目类型、技术栈、语言边界到主贡献选择的关键决策点。
+- 关键迭代：见第 3 节，记录至少三轮由用户质询、AI 建议和人工决策共同形成的迭代。
+- 冷启动验证：见第 6 节，记录另一个 agent 仅凭 `SPEC.md` 和 `PLAN.md` 执行 Task 1 时暴露的问题。
+- SPEC / PLAN 修订：见第 4.3、6.6、6.8 节，记录冷启动反馈如何回写到规约和计划。
+
 ## 2. Brainstorming 关键节点
 
 ### 2.1 从“做一个 coding agent”收敛到 A 项 Coding Agent Harness

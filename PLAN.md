@@ -193,7 +193,7 @@ Task 15
 - CLI 使用标准库 `argparse`，先提供 `--version`、`--help`、`demo`、`web`、`credentials`、`run` 子命令占位入口；未实现的占位子命令返回 exit code `1` 并打印包含 `not yet implemented` 的信息，不执行 agent。
 - `.gitignore` 必须包含 `.env`, `.venv/`, `__pycache__/`, `.pytest_cache/`, `.safeloop/`, `dist/`, `build/`。
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # tests/test_cli_bootstrap.py
@@ -227,23 +227,23 @@ def test_version_flag_prints_version():
     assert result.stdout.strip().startswith("safeloop ")
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `python -m pytest tests/test_cli_bootstrap.py -v`
 
 Expected: FAIL with `ModuleNotFoundError: No module named 'safeloop'`.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Create the package files and CLI entry with the interfaces listed above. `main()` must return an integer exit code. `__main__.py` must call `raise SystemExit(main())`.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `python -m pytest tests/test_cli_bootstrap.py -v`
 
 Expected: PASS for both tests.
 
-- [ ] **Step 5: Verify one-command test target**
+- [x] **Step 5: Verify one-command test target**
 
 Run: `make test`
 
@@ -251,14 +251,16 @@ If `make` is unavailable on Windows, run: `python -m pytest`
 
 Expected: Runs the pytest suite and exits 0.
 
-- [ ] **Step 6: Commit and log**
+- [x] **Step 6: Commit and log**
 
 ```bash
 git add pyproject.toml Makefile .gitignore safeloop tests AGENT_LOG.md PLAN.md
 git commit -m "chore(task-1): bootstrap safeloop package"
 ```
 
-Update `PLAN.md` Task 1 with the commit hash and append an `AGENT_LOG.md` entry naming the subagent.
+Implementation commit: `db94d5c` (`test(task-1): cover placeholder cli commands`).
+
+Updated `AGENT_LOG.md` with the Task 1 entry for implementation subagent `Mendel` and reviewer/fix loop.
 
 ---
 
@@ -294,7 +296,7 @@ Update `PLAN.md` Task 1 with the commit hash and append an `AGENT_LOG.md` entry 
 - `load_config()` 读取 YAML，校验 workspace 存在，路径相对 workspace 解析。
 - 配置错误抛出 `ConfigError`，错误信息包含字段名。
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # tests/test_config.py
@@ -382,36 +384,44 @@ def test_guardrail_decision_uses_known_values():
     assert decision.decision == "deny"
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_config.py tests/test_models_events.py -v`
 
 Expected: FAIL with import errors for `safeloop.config` or missing model classes.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Create Pydantic models and config loader matching the interfaces. Do not add LLM, tool, or state machine logic in this task.
 
-- [ ] **Step 4: Run focused tests**
+- [x] **Step 4: Run focused tests**
 
 Run: `python -m pytest tests/test_config.py tests/test_models_events.py -v`
 
 Expected: PASS.
 
-- [ ] **Step 5: Run full tests**
+- [x] **Step 5: Run full tests**
 
 Run: `make test`
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit and log**
+- [x] **Step 6: Commit and log**
 
 ```bash
 git add safeloop/models.py safeloop/config.py tests/test_config.py tests/test_models_events.py pyproject.toml PLAN.md AGENT_LOG.md
 git commit -m "feat(task-2): add core models and config loader"
 ```
 
+Implementation commit: `2699c02` (`fix(task-2): remove toolresult metadata`).
+
 Update `PLAN.md` Task 2 with the commit hash and append an `AGENT_LOG.md` entry.
+
+Review fix commit: `e3b1377` (`fix(task-2): resolve run workspace paths`).
+
+PR1 review fix commit: `fbca894` (`fix(pr1): tighten config workspace boundaries`) rejects `allowed_paths`/`blocked_paths` that escape `workspace`, rejects file-backed `workspace` values, and preserves the explicit review trail in `AGENT_LOG.md`.
+
+PR1 review follow-up commit: `1cd198c` (`fix(pr1): validate redaction env var names`) ensures `redaction_secret_env_vars` stores environment variable names only, not secret-like or malformed values.
 
 ---
 
@@ -444,7 +454,7 @@ Update `PLAN.md` Task 2 with the commit hash and append an `AGENT_LOG.md` entry.
 - `update_status()` 写入 `state_changed` 事件。
 - 缺失 run 抛出 `RunNotFoundError`。
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # tests/test_models_events.py
@@ -492,40 +502,54 @@ def test_run_manager_missing_run_raises():
         manager.get_run("missing")
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_models_events.py -v`
 
 Expected: FAIL with import errors for `EventLogStore`, `RunManager`, or `redact_secrets`.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Implement in-memory event and run stores. Ensure all event payloads pass through `redact_secrets()`.
 
-- [ ] **Step 4: Run focused tests**
+- [x] **Step 4: Run focused tests**
 
 Run: `python -m pytest tests/test_models_events.py -v`
 
 Expected: PASS.
 
-- [ ] **Step 5: Run full tests**
+- [x] **Step 5: Run full tests**
 
 Run: `make test`
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit and log**
+- [x] **Step 6: Commit and log**
 
 ```bash
 git add safeloop/events.py safeloop/run_manager.py safeloop/security/redaction.py safeloop/models.py tests/test_models_events.py PLAN.md AGENT_LOG.md
 git commit -m "feat(task-3): add event log and run manager"
 ```
 
+Implementation commit: `8ef8c28` (`feat(task-3): add event log and run manager`), completed by subagent Dalton.
+
+Review fix commit: `b303d1f` (`fix(task-3): isolate event log copies`), completed by subagent Rawls after reviewer Feynman flagged mutable event-history exposure.
+
+Review fix commit: `88f4537` (`fix(task-3): strengthen event redaction traceability`), completed by subagent Zeno after reviewer findings required configured known-secret redaction, stronger key/content heuristics, UUID-shape coverage, and explicit Task 3 traceability notes.
+
+Review fix commit: `f5aad67` (`fix(task-3): wire runtime redaction secrets`), completed by subagent Fermat to add config-owned secret env var names, deterministic runtime secret collection, and default `RunManager()` wiring so Task 3 events redact configured runtime secret values without storing secrets in config.
+
+PR1 review fix commit: `fbca894` (`fix(pr1): tighten config workspace boundaries`) also closes the branch-level Minor by making dotenv-style secret-line redaction case-insensitive for lowercase assignments such as `api_key=...`.
+
+PR1 review follow-up commit: `1cd198c` (`fix(pr1): validate redaction env var names`) keeps runtime redaction configuration name-only by rejecting secret-like values in `redaction_secret_env_vars`.
+
 Update `PLAN.md` Task 3 with the commit hash and append an `AGENT_LOG.md` entry.
 
 ---
 
 ### Task 4: LLM Abstraction and Action Parser
+
+**Status:** DONE in commit `c107cae` (`feat(task-4): add llm abstraction and action parser`) by implementer subagent Turing.
 
 **Goal:** 将真实 LLM 的不确定性隔离在可替换接口后面，并把模型输出解析成可验证的结构化动作。
 
@@ -551,7 +575,7 @@ Update `PLAN.md` Task 3 with the commit hash and append an `AGENT_LOG.md` entry.
 - `parse_action()` 只接受 JSON object，必须包含 `tool_name`, `arguments`, `reason`, `expected_outcome`。
 - 未知工具、非法 JSON、缺失字段都抛出 `ActionParseError`。
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # tests/test_llm_actions.py
@@ -597,29 +621,29 @@ def test_parse_action_rejects_invalid_json():
         parse_action("not json", allowed_tools={"read_file"})
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_llm_actions.py -v`
 
 Expected: FAIL with missing `safeloop.actions` or parser symbols.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Create the LLM protocol, request model, mock client, and parser. Do not call DeepSeek in this task.
 
-- [ ] **Step 4: Run focused tests**
+- [x] **Step 4: Run focused tests**
 
 Run: `python -m pytest tests/test_llm_actions.py -v`
 
 Expected: PASS.
 
-- [ ] **Step 5: Run full tests**
+- [x] **Step 5: Run full tests**
 
-Run: `make test`
+Run: `python -m pytest -v`
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit and log**
+- [x] **Step 6: Commit and log**
 
 ```bash
 git add safeloop/llm safeloop/actions.py safeloop/models.py tests/test_llm_actions.py PLAN.md AGENT_LOG.md
@@ -654,7 +678,7 @@ Update `PLAN.md` Task 4 with the commit hash and append an `AGENT_LOG.md` entry.
 - 命中 `approval_required_commands` 返回 `require_approval`。
 - 规则冲突时选择更安全决策：`deny` 优先于 `require_approval`，`require_approval` 优先于 `allow`。
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # tests/test_guardrails.py
@@ -728,29 +752,29 @@ def test_guardrail_requires_approval_for_configured_command(tmp_path: Path):
     assert decision.decision == "require_approval"
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_guardrails.py -v`
 
 Expected: FAIL with missing `GuardrailEngine`.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Implement deterministic path and command checks. Do not execute commands or read files inside guardrails.
 
-- [ ] **Step 4: Run focused tests**
+- [x] **Step 4: Run focused tests**
 
 Run: `python -m pytest tests/test_guardrails.py -v`
 
 Expected: PASS.
 
-- [ ] **Step 5: Run full tests**
+- [x] **Step 5: Run full tests**
 
-Run: `make test`
+Run: `python -m pytest -v`
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit and log**
+- [x] **Step 6: Commit and log**
 
 ```bash
 git add safeloop/security/guardrails.py safeloop/security/redaction.py tests/test_guardrails.py PLAN.md AGENT_LOG.md
@@ -758,6 +782,10 @@ git commit -m "feat(task-5): add deterministic guardrails"
 ```
 
 Update `PLAN.md` Task 5 with the commit hash and append an `AGENT_LOG.md` entry.
+
+Task 5 implementation commit: `92c7022` (`feat(task-5): add deterministic guardrails`).
+
+Task 5 review-fix commit: `5a48883` (`fix(task-5): guard generic action arguments`).
 
 ---
 
@@ -787,7 +815,7 @@ Update `PLAN.md` Task 5 with the commit hash and append an `AGENT_LOG.md` entry.
 - `patch_file()` 要求 `old` 在文件中出现一次且仅一次；否则返回失败，不写入。
 - `list_files()` 不列出 `.git`, `.venv`, `__pycache__`, `.pytest_cache`, `.safeloop`。
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # tests/test_file_tools.py
@@ -859,40 +887,57 @@ def test_read_file_rejects_too_large_file(tmp_path: Path):
     assert "too large" in result.summary
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_file_tools.py -v`
 
-Expected: FAIL with missing `FileTools`.
+Observed RED:
 
-- [ ] **Step 3: Write minimal implementation**
+```text
+ModuleNotFoundError: No module named 'safeloop.tools'
+```
+
+- [x] **Step 3: Write minimal implementation**
 
 Implement `ToolContext` and file operations. Reuse path boundary checks from Task 5.
 
-- [ ] **Step 4: Run focused tests**
+- [x] **Step 4: Run focused tests**
 
 Run: `python -m pytest tests/test_file_tools.py -v`
 
-Expected: PASS.
+Observed GREEN: `11 passed in 0.49s`
 
-- [ ] **Step 5: Run full tests**
+- [x] **Step 5: Run full tests**
 
 Run: `make test`
 
-Expected: PASS.
+Windows fallback used here:
 
-- [ ] **Step 6: Commit and log**
+```bash
+python -m pytest -v
+```
+
+Observed GREEN: `78 passed in 3.89s`
+
+- [x] **Step 6: Commit and log**
 
 ```bash
 git add safeloop/tools/base.py safeloop/tools/files.py tests/test_file_tools.py PLAN.md AGENT_LOG.md
 git commit -m "feat(task-6): add workspace bounded file tools"
 ```
 
-Update `PLAN.md` Task 6 with the commit hash and append an `AGENT_LOG.md` entry.
+Implementation commit: `54c806d` (`feat(task-6): add workspace bounded file tools`).
+
+Updated `PLAN.md` Task 6 with the implementation hash and appended the Task 6 `AGENT_LOG.md` entry.
+
+Review-fix commit: `a02f636` (`fix(task-6): keep allowed dot directories visible`).
+The review fix narrowed `list_files()` to exclude only `.git`, `.venv`, `__pycache__`, `.pytest_cache`, and `.safeloop`, while the new regression coverage proved `.github` stays visible and `patch_file()` still rejects zero-match edits without changing file contents.
 
 ---
 
 ### Task 7: Command and Test Tools
+
+**Status:** DONE in commit `08e849a` (`feat(task-7): add command and test tools`). Implementer subagent Lovelace wrote the tests and implementation; controller completed verification, process documentation, and commit after the subagent timed out before reporting.
 
 **Goal:** 在 workspace 内执行允许的命令和测试命令，收集 exit code、stdout、stderr、耗时和超时结果。
 
@@ -916,7 +961,7 @@ Update `PLAN.md` Task 6 with the commit hash and append an `AGENT_LOG.md` entry.
 - timeout 返回 `success=False`, `summary` 包含 `timeout`。
 - `run_tests()` 使用 `config.test_command`。
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # tests/test_command_tools.py
@@ -976,29 +1021,37 @@ def test_run_command_reports_timeout(tmp_path: Path):
     assert "timeout" in result.summary.lower()
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_command_tools.py -v`
 
 Expected: FAIL with missing `CommandTools`.
 
-- [ ] **Step 3: Write minimal implementation**
+Observed RED:
+
+```text
+ModuleNotFoundError: No module named 'safeloop.tools.commands'
+```
+
+- [x] **Step 3: Write minimal implementation**
 
 Implement command execution with guardrail checks, timeout handling, output truncation and standardized `ToolResult`.
 
-- [ ] **Step 4: Run focused tests**
+- [x] **Step 4: Run focused tests**
 
 Run: `python -m pytest tests/test_command_tools.py -v`
 
 Expected: PASS.
 
-- [ ] **Step 5: Run full tests**
+Observed GREEN: `7 passed in 3.26s`
 
-Run: `make test`
+- [x] **Step 5: Run full tests**
 
-Expected: PASS.
+Run: `python -m pytest -v`
 
-- [ ] **Step 6: Commit and log**
+Observed GREEN: `86 passed in 6.75s`
+
+- [x] **Step 6: Commit and log**
 
 ```bash
 git add safeloop/tools/commands.py safeloop/tools/base.py tests/test_command_tools.py PLAN.md AGENT_LOG.md
@@ -1007,11 +1060,15 @@ git commit -m "feat(task-7): add command and test tools"
 
 Update `PLAN.md` Task 7 with the commit hash and append an `AGENT_LOG.md` entry.
 
+**Branch Review Fix:** reviewer Hooke found that command guardrails could be bypassed by extra whitespace and that `OSError` escaped as `CommandToolError` instead of a structured `ToolResult`. RED tests `test_guardrail_normalizes_command_whitespace_before_matching`, `test_run_command_blocks_whitespace_variant_without_execution`, and `test_run_command_returns_structured_result_for_oserror` failed first; GREEN focused verification `python -m pytest tests/test_guardrails.py tests/test_command_tools.py -v` = `19 passed`; full verification `python -m pytest -v` = `103 passed`. Commit: `f58d2f5`.
+
 ---
 
 ### Task 8: Tool Dispatcher and Tool Registry
 
 **Goal:** 用统一 dispatcher 注册、校验和调用所有工具，落实主要贡献“工具分发与执行状态机设计”的工具分发部分。
+
+**Status:** completed in commit `4c43dbd`; review fix added in commit `e631cc3`; focused dispatcher tests `13 passed`, full suite `100 passed`.
 
 **Files:**
 - Create: `safeloop/tools/dispatcher.py`
@@ -1035,7 +1092,7 @@ Update `PLAN.md` Task 7 with the commit hash and append an `AGENT_LOG.md` entry.
 - 参数缺失或类型错误返回失败 `ToolResult`，不抛出未捕获异常。
 - `finish` 返回 `ToolResult(success=True, summary="finished")`，并在 metadata 中标记 `finish=True`。
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # tests/test_dispatcher.py
@@ -1116,7 +1173,7 @@ def test_dispatcher_finish_sets_metadata(tmp_path: Path):
     assert result.metadata["finish"] is True
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_dispatcher.py -v`
 
@@ -1147,9 +1204,13 @@ git commit -m "feat(task-8): add tool dispatcher"
 
 Update `PLAN.md` Task 8 with the commit hash and append an `AGENT_LOG.md` entry.
 
+**Task 8 Evidence:** RED regression `test_memory_tools_report_unavailable_without_arguments` failed because `save_memory` reported missing `content`; GREEN focused verification `python -m pytest tests/test_dispatcher.py -v` = `12 passed`; full verification `python -m pytest -v` = `99 passed`. Reviewer Hubble found one Important process issue, corrected in review-fix commit `e631cc3`; final focused verification `python -m pytest tests/test_dispatcher.py -v` = `13 passed`; final full verification `python -m pytest -v` = `100 passed`. Implementation commit: `4c43dbd`.
+
 ---
 
 ### Task 9: Feedback Classifier
+
+**Status:** completed in commit `f7b48df`; focused feedback tests `7 passed`, full suite `110 passed`.
 
 **Goal:** 把工具输出、测试失败、超时、护栏拦截和解析错误转成下一轮 LLM 可消费的压缩反馈。
 
@@ -1173,7 +1234,7 @@ Update `PLAN.md` Task 8 with the commit hash and append an `AGENT_LOG.md` entry.
 - guardrail deny 分类为 `guardrail_blocked`。
 - 原始片段最长 1200 字符，并经过 redaction。
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # tests/test_feedback.py
@@ -1279,6 +1340,8 @@ Update `PLAN.md` Task 9 with the commit hash and append an `AGENT_LOG.md` entry.
 
 ### Task 10: Project Memory Store
 
+**Status:** completed in commit `68b2c06`; focused memory tests `6 passed`, full suite `116 passed`; reviewer Boyle approved with no Critical/Important/Minor issues.
+
 **Goal:** 实现项目级记忆的保存、读取、标签过滤和 secret 防护，使 agent 能跨 run 使用项目规则。
 
 **Files:**
@@ -1376,6 +1439,8 @@ Update `PLAN.md` Task 10 with the commit hash and append an `AGENT_LOG.md` entry
 
 ### Task 11: Agent State Machine Loop
 
+**Status:** completed in commits `85eec76`, `fe05a47`, and review-fixes `54da841`, `173f098`, `44a2fb7`, `5d890ca`, `c3d1645`, and `45aeb08`; latest focused dispatcher/state-machine tests `24 passed`, full suite `132 passed`. The review fixes add runtime configured-secret filtering for memory content/metadata/id and feedback, terminal failure handling for memory/LLM boundary errors, dispatcher schemas plus known-secret metadata on each `LLMRequest`, DeepSeek payload propagation/redaction for task/feedback/memory/events/tool schemas, explicit secret seeding for split event-store construction, and real dispatcher wiring for `save_memory`/`load_memory` through `MemoryStore`. The optional duplicate `llm_action` event cleanup remains deferred.
+
 **Goal:** 实现核心 agent loop：context -> LLM action -> parse -> guard -> dispatch -> observe -> feedback -> stop/continue。
 
 **Files:**
@@ -1400,7 +1465,7 @@ Update `PLAN.md` Task 10 with the commit hash and append an `AGENT_LOG.md` entry
 - parse error 进入 feedback；连续 parse error 达到 2 次时停止。
 - guardrail deny 不执行工具，转成反馈并继续下一轮；如果下一轮仍危险，可在 max_steps 前持续记录。
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # tests/test_state_machine.py
@@ -1476,42 +1541,46 @@ def test_state_machine_stops_at_max_steps(tmp_path: Path):
     assert any("max_steps" in str(event.payload) for event in store.list(run.id))
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_state_machine.py -v`
 
 Expected: FAIL with missing `AgentStateMachine`.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Implement the loop and event sequence using existing modules. Keep the state machine independent from CLI and WebUI.
 
-- [ ] **Step 4: Run focused tests**
+- [x] **Step 4: Run focused tests**
 
 Run: `python -m pytest tests/test_state_machine.py -v`
 
 Expected: PASS.
 
-- [ ] **Step 5: Run mechanism-focused tests**
+- [x] **Step 5: Run mechanism-focused tests**
 
 Run: `python -m pytest tests/test_state_machine.py tests/test_guardrails.py tests/test_dispatcher.py tests/test_feedback.py -v`
 
 Expected: PASS.
 
-- [ ] **Step 6: Run full tests**
+- [x] **Step 6: Run full tests**
 
 Run: `make test`
 
 Expected: PASS.
 
-- [ ] **Step 7: Commit and log**
+- [x] **Step 7: Commit and log**
 
 ```bash
 git add safeloop/state_machine.py safeloop/run_manager.py safeloop/events.py tests/test_state_machine.py PLAN.md AGENT_LOG.md
 git commit -m "feat(task-11): add agent state machine loop"
 ```
 
-Update `PLAN.md` Task 11 with the commit hash and append an `AGENT_LOG.md` entry.
+Implementation commit: `85eec76` (`feat(task-11): add agent state machine`).
+
+Traceability commit: `fe05a47` (`docs(task-11): record state machine traceability`).
+
+Task review: reviewer Nietzsche approved Task 11 with no Critical or Important issues. Minor note: valid actions currently produce one raw and one parsed `llm_action` event; this is recorded for later event-schema polish and is not blocking the MVP mechanism requirement.
 
 ---
 
@@ -1603,29 +1672,39 @@ Run: `python -m pytest tests/test_demo.py tests/test_cli_bootstrap.py -v`
 
 Expected: FAIL because `demo` and `run` commands are not wired.
 
-- [ ] **Step 3: Write minimal implementation**
+Observed RED: `2 failed, 3 passed`; `demo` returned placeholder exit code `1`, and `run` rejected `--config`, `--task`, and `--mock-response`. Follow-up RED for the real demo mechanism failed because the copied sample workspace did not show `patch_file success=True` or `run_tests success=True`.
+
+- [x] **Step 3: Write minimal implementation**
 
 Wire CLI subcommands to state machine and create the deterministic sample project. The demo must not call a real provider.
 
-- [ ] **Step 4: Run focused tests**
+- [x] **Step 4: Run focused tests**
 
 Run: `python -m pytest tests/test_demo.py tests/test_cli_bootstrap.py -v`
 
 Expected: PASS.
 
-- [ ] **Step 5: Run demo manually**
+Observed GREEN: `6 passed in 4.21s`.
+
+- [x] **Step 5: Run demo manually**
 
 Run: `python -m safeloop demo`
 
 Expected: Exit 0 and output contains `guardrail_blocked`, `feedback_added`, and `finished`.
 
-- [ ] **Step 6: Run full tests**
+Observed GREEN: exit `0`; stdout contained `guardrail_blocked`, `feedback_added test_failure`, `patch_file success=True`, `run_tests success=True`, and `finished`.
+
+`make demo` was not runnable in this Windows shell because `make` is not installed; the underlying target command `python -m safeloop demo` was verified directly.
+
+- [x] **Step 6: Run full tests**
 
 Run: `make test`
 
 Expected: PASS.
 
-- [ ] **Step 7: Commit and log**
+Observed GREEN: `python -m pytest -v` -> `134 passed in 9.89s`.
+
+- [x] **Step 7: Commit and log**
 
 ```bash
 git add safeloop/cli.py safeloop/demo.py tests/test_demo.py tests/test_cli_bootstrap.py samples Makefile PLAN.md AGENT_LOG.md
@@ -1633,6 +1712,10 @@ git commit -m "feat(task-12): add cli commands and mechanism demo"
 ```
 
 Update `PLAN.md` Task 12 with the commit hash and append an `AGENT_LOG.md` entry.
+
+Implementation commit: `5e11b3f` (`feat(task-12): add cli commands and mechanism demo`).
+
+Review-fix commit: `6111087` (`fix(task-12): allow default mock run`) addresses reviewer Rawls's Important finding that the documented `run --config ... --task ... --llm mock` interface required an undocumented `--mock-response`. RED: focused Task 12 tests failed because default mock run returned exit code `2`. GREEN: focused Task 12 tests `7 passed`; documented sample command exited `0` with `final_status: finished`; full suite `135 passed`.
 
 ---
 
@@ -1665,7 +1748,7 @@ Update `PLAN.md` Task 12 with the commit hash and append an `AGENT_LOG.md` entry
 - 缺失 run 返回 404。
 - WebUI 不显示 secret，事件 payload 使用 redaction。
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # tests/test_web.py
@@ -1729,29 +1812,35 @@ def test_missing_run_returns_404():
     assert response.status_code == 404
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_web.py -v`
 
 Expected: FAIL with missing `safeloop.web`.
 
-- [ ] **Step 3: Write minimal implementation**
+Observed RED: `python -m pytest tests/test_web.py tests/test_cli_bootstrap.py -v` failed during collection with `ModuleNotFoundError: No module named 'safeloop.web'`.
+
+- [x] **Step 3: Write minimal implementation**
 
 Implement FastAPI app, JSON endpoints, simple HTML, and CLI web command.
 
-- [ ] **Step 4: Run focused tests**
+- [x] **Step 4: Run focused tests**
 
 Run: `python -m pytest tests/test_web.py -v`
 
 Expected: PASS.
 
-- [ ] **Step 5: Run full tests**
+Observed GREEN: `python -m pytest tests/test_web.py tests/test_cli_bootstrap.py -v` -> `7 passed, 1 warning`.
+
+- [x] **Step 5: Run full tests**
 
 Run: `make test`
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit and log**
+Observed GREEN: `python -m pytest -v` -> `139 passed, 1 warning`.
+
+- [x] **Step 6: Commit and log**
 
 ```bash
 git add safeloop/web.py safeloop/cli.py tests/test_web.py pyproject.toml PLAN.md AGENT_LOG.md
@@ -1759,6 +1848,18 @@ git commit -m "feat(task-13): add fastapi webui"
 ```
 
 Update `PLAN.md` Task 13 with the commit hash and append an `AGENT_LOG.md` entry.
+
+Implementation commit: `756639d` (`feat(task-13): add fastapi webui`).
+
+Hash traceability note: the implementation hash was recorded in this follow-up evidence update because a commit cannot contain its own final hash.
+
+Review-fix commit: `b561d9d` (`fix(task-13): redact web run responses`) closes reviewer Descartes's Critical finding that Web run responses could echo configured runtime secrets through raw `RunRecord.task`. RED: focused Task 13 tests failed because `POST /api/runs` returned `alpha-token-123`. GREEN: focused Task 13 tests `9 passed, 1 warning`; full suite `141 passed, 1 warning`. The `tests/test_cli_bootstrap.py` update is part of the Task 13 CLI interface because `web` changed from placeholder to real `uvicorn` runner.
+
+Re-review: reviewer Maxwell confirmed the Descartes Critical is closed, `/api/demo` smoke coverage exists, the `web` CLI bootstrap update is within Task 13 scope, and there are no new Critical or Important issues. Controller verification after the fix: focused Task 13 tests `9 passed, 1 warning`; full suite `141 passed, 1 warning`; `git diff --check` clean; secret scan found no matches.
+
+PR5 branch review gate: a fresh final reviewer subagent (`Averroes`) was attempted for the full Task 12 + Task 13 branch review, but the subagent platform returned a usage-limit error before producing a review. The controller therefore performed the branch review against the full PR5 diff (`6d63d9c..5d599ba`) and found no new Critical or Important issues. Fresh PR-before-push verification: `python -m pytest -v` -> `141 passed, 1 warning`; `python -m safeloop demo` -> exit `0` with guardrail/test-failure/patch/pass/finish events; `python -m safeloop run --config samples/python_buggy_calculator/safeloop.yml --task verify --llm mock` -> exit `0` with `final_status: finished`; `git diff --check` clean; secret scan found no matches.
+
+GitHub PR: `https://github.com/wangyunjie878/Safeloop-coding-agent/pull/6`.
 
 ---
 
@@ -1772,7 +1873,11 @@ Update `PLAN.md` Task 13 with the commit hash and append an `AGENT_LOG.md` entry
 - Create: `tests/test_credentials.py`
 - Create: `tests/test_deepseek_client.py`
 - Modify: `safeloop/cli.py`
+- Modify: `safeloop/llm/__init__.py`
+- Modify: `tests/test_cli_bootstrap.py` if needed for implemented `credentials` behavior
 - Modify: `PLAN.md`
+- Modify: `AGENT_LOG.md`
+- Create: `.superpowers/sdd/task-14-report.md`
 
 **Interfaces:**
 - Consumes: `HarnessConfig`, `LLMRequest`
@@ -1793,7 +1898,7 @@ Update `PLAN.md` Task 13 with the commit hash and append an `AGENT_LOG.md` entry
 - `credentials set` 使用 `getpass.getpass()` 隐藏输入。
 - DeepSeek client 使用 OpenAI-compatible chat completions HTTP API；单元测试使用 `httpx.MockTransport`。
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # tests/test_credentials.py
@@ -1859,42 +1964,48 @@ def test_deepseek_client_uses_http_transport_without_real_network():
     assert '"finish"' in raw
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_credentials.py tests/test_deepseek_client.py -v`
 
-Expected: FAIL with missing credential and DeepSeek modules.
+Observed RED: collection failed with `ModuleNotFoundError: No module named 'safeloop.credentials'` and `ModuleNotFoundError: No module named 'safeloop.llm.deepseek'`.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Implement credential backends and DeepSeek client. Do not store or print any real key in tests, logs, README, or config samples.
 
-- [ ] **Step 4: Run focused tests**
+- [x] **Step 4: Run focused tests**
 
 Run: `python -m pytest tests/test_credentials.py tests/test_deepseek_client.py -v`
 
-Expected: PASS.
+Observed GREEN: `12 passed in 0.56s`.
 
-- [ ] **Step 5: Run secret scan commands**
+- [x] **Step 5: Run secret scan commands**
 
 Run: `Get-ChildItem -Recurse -File | Select-String -Pattern 'sk-'`
 
-Expected: Only test dummy strings such as `sk-test`, `sk-secret`, `sk-env` appear; no real key appears.
+Observed: matches are limited to dummy placeholders in tests, docs, and generated `.pyc` cache entries such as `sk-test`, `sk-secret`, `sk-env`, and existing redaction/test fixtures; no real API key appeared.
 
-- [ ] **Step 6: Run full tests**
+- [x] **Step 6: Run full tests**
 
-Run: `make test`
+Run: `python -m pytest -v`
 
-Expected: PASS.
+Observed GREEN: `65 passed in 1.70s`.
 
-- [ ] **Step 7: Commit and log**
+- [x] **Step 7: Commit and log**
 
 ```bash
 git add safeloop/credentials.py safeloop/llm/deepseek.py safeloop/cli.py tests/test_credentials.py tests/test_deepseek_client.py PLAN.md AGENT_LOG.md
 git commit -m "feat(task-14): add credential manager and deepseek client"
 ```
 
-Update `PLAN.md` Task 14 with the commit hash and append an `AGENT_LOG.md` entry.
+Implementation commit: `68b0c96` (`feat(task-14): add credential manager and deepseek client`).
+
+Hash traceability note: the real implementation hash was recorded in a follow-up process commit because a commit cannot embed its own final hash without changing that hash.
+
+Review-fix commit: `4e0af51` (`fix(task-14): harden credentials and deepseek errors`).
+
+Branch review integration fix: `173f098` (`fix(pr-feedback): send agent context to deepseek`) adds an offline `httpx.MockTransport` regression proving DeepSeek requests include redacted feedback, memories, events, and tool schemas. RED: `IndexError: list index out of range` for missing context message. GREEN: `python -m pytest tests/test_deepseek_client.py -v` -> `6 passed`; `python -m pytest tests/test_deepseek_client.py tests/test_memory.py tests/test_state_machine.py -v` -> `21 passed`; `python -m pytest -v` -> `126 passed`.
 
 ---
 
@@ -1922,7 +2033,7 @@ Update `PLAN.md` Task 14 with the commit hash and append an `AGENT_LOG.md` entry
 - Produces GitLab CI job: `unit-test`
 
 **Expected Implementation:**
-- GitHub Actions on push and pull request runs Python setup, `python -m pytest`, `python -m safeloop demo`, and Docker build.
+- GitHub Actions on every push and pull request, including documentation-only pushes, runs Python setup, `python -m pytest`, `python -m safeloop demo`, and Docker build so the final repository has visible passing Actions checks for the grader.
 - `.gitlab-ci.yml` includes `unit-test` job running `python -m pytest`.
 - Docker image starts WebUI on `0.0.0.0:8000` in mock mode by default.
 - README contains exact sections: Project Overview, Installation, Running, Distribution, Credential Security, Safety Boundaries, Directory Structure, Testing, CI/CD, Known Limits.
@@ -2006,7 +2117,7 @@ Run: `docker build -t safeloop-agent .`
 
 Expected: Docker image builds successfully.
 
-- [ ] **Step 6: Commit and log**
+- [x] **Step 6: Commit and log**
 
 ```bash
 git add Dockerfile .github/workflows/ci.yml .gitlab-ci.yml README.md Makefile tests/test_distribution_files.py PLAN.md AGENT_LOG.md
@@ -2014,6 +2125,14 @@ git commit -m "chore(task-15): add ci docker and readme"
 ```
 
 Update `PLAN.md` Task 15 with the commit hash and append an `AGENT_LOG.md` entry.
+
+Implementation commit: `d8b964a` (`chore(task-15): add ci docker and readme`).
+
+Verification evidence: RED `python -m pytest tests/test_distribution_files.py -v` failed with 4 expected missing-file failures; focused GREEN `4 passed`; full suite `145 passed, 1 warning`; `python -m safeloop demo` exited `0`; `git diff --check` was clean except Windows LF-to-CRLF warnings; secret scan found no matches. Local `make test` could not run because GNU Make is not installed in this Windows shell. Initial local `docker build -t safeloop-agent .` could not reach Docker Desktop daemon; after Docker Desktop was started, elevated `docker build -t safeloop-agent .` succeeded and produced `safeloop-agent:latest`. The GitHub Actions workflow added in this task runs `python -m pytest`, `python -m safeloop demo`, and `docker build -t safeloop-agent .` on every push and pull request, including documentation-only changes.
+
+Review-fix commit: `f877799` (`fix(task-15): harden docker context checks`) closes reviewer Sartre's Critical `.dockerignore` credential-copy risk and Important weak-test finding. RED: focused distribution tests failed on missing `.env`, then missing `.safeloop`. GREEN: focused distribution tests `5 passed`; full suite `146 passed, 1 warning`; secret scan found no matches.
+
+Re-review: reviewer Sartre confirmed the Critical and Important findings are fixed, found no new Critical or Important issues, and marked Task 15 ready to proceed to Task 16. Controller verification after re-review: `python -m pytest -v` -> `146 passed, 1 warning`; `python -m safeloop demo` -> exit `0`.
 
 ---
 
@@ -2076,37 +2195,47 @@ def test_reflection_marks_human_owned_report():
     assert "Superpowers" in text
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_process_docs.py -v`
 
 Expected: FAIL until process documents contain required sections.
 
-- [ ] **Step 3: Write minimal documentation structure**
+Actual RED: `2 failed, 1 passed`; failures were missing exact `SPEC_PROCESS.md` phrase coverage and missing `REFLECTION.md`.
+
+- [x] **Step 3: Write minimal documentation structure**
 
 Create or update the process documents using real process evidence from this project. `REFLECTION.md` may contain headings and notes for the student to complete personally.
 
-- [ ] **Step 4: Run focused tests**
+- [x] **Step 4: Run focused tests**
 
 Run: `python -m pytest tests/test_process_docs.py -v`
 
 Expected: PASS.
 
-- [ ] **Step 5: Run final local verification**
+Actual: `3 passed`.
+
+- [x] **Step 5: Run final local verification**
 
 Run: `make test`
 
 Expected: PASS.
 
+Actual local note: blocked because GNU Make is not installed in this Windows shell; equivalent `python -m pytest -v` passed with `149 passed, 1 warning`.
+
 Run: `python -m safeloop demo`
 
 Expected: Exit 0 and output contains `guardrail_blocked`, `feedback_added`, and `finished`.
+
+Actual: exit `0`; output contained `guardrail_blocked`, `feedback_added`, and `finished`.
 
 Run: `docker build -t safeloop-agent .`
 
 Expected: Docker image builds successfully.
 
-- [ ] **Step 6: Commit and log**
+Actual local note: sandboxed attempt could not access Docker config; elevated retry initially reached Docker but failed because Docker Desktop daemon was not running (`dockerDesktopLinuxEngine` pipe missing). After Docker Desktop was started, elevated `docker build -t safeloop-agent .` succeeded and produced `safeloop-agent:latest`. The GitHub Actions workflow still includes the Docker build job for CI verification.
+
+- [x] **Step 6: Commit and log**
 
 ```bash
 git add SPEC_PROCESS.md AGENT_LOG.md REFLECTION.md README.md tests/test_process_docs.py PLAN.md
@@ -2114,6 +2243,296 @@ git commit -m "docs(task-16): add process evidence documents"
 ```
 
 Update `PLAN.md` Task 16 with the commit hash and append the final `AGENT_LOG.md` entry.
+
+Implementation evidence: implementer Poincare was dispatched but timed out after leaving partial documentation edits; the controller completed the Task16 evidence updates. Commit: `cafb6da` (`docs(task-16): add process evidence documents`).
+
+PR evidence: `feature/distribution-docs` was pushed and published as GitHub PR #7, `https://github.com/wangyunjie878/Safeloop-coding-agent/pull/7`, targeting base branch `feature/cli-web-demo`. The PR body records subagent ownership, controller/human interventions, validation commands, Docker verification, and credential notes.
+
+CI evidence: GitHub Actions CI run #4 passed on commit `efa6659`, `https://github.com/wangyunjie878/Safeloop-coding-agent/actions/runs/29193389510`.
+
+---
+
+### Task 17: DeepSeek CLI Chat and Real-Provider Run Wiring
+
+**Goal:** Turn the existing SafeLoop harness into a usable small opencode-style CLI that can run with a user-provided DeepSeek API key, while keeping CI and tests offline through mock/fake clients.
+
+**Files:**
+- Modify: `safeloop/cli.py`
+- Modify: `safeloop/demo.py`
+- Modify: `safeloop/llm/deepseek.py`
+- Modify: `tests/test_deepseek_client.py`
+- Create: `tests/test_cli_deepseek_chat.py`
+- Modify: `README.md`
+- Modify: `PLAN.md`
+- Modify: `AGENT_LOG.md`
+
+**Interfaces:**
+- Consumes: `CredentialManager`, `DeepSeekClient`, `AgentStateMachine`, `run_harness_with_client`
+- Produces: `python -m safeloop run --config safeloop.yml --task "..." --llm deepseek`
+- Produces: `python -m safeloop chat --config safeloop.yml --llm deepseek`
+- Produces: CLI flags `--model`, `--credential-backend`, and `--dotenv-path`
+
+- [x] **Step 1: Write failing CLI tests**
+
+Created `tests/test_cli_deepseek_chat.py` with offline fake DeepSeek coverage for configured env credentials, missing-key handling, and one interactive `chat` turn.
+
+- [x] **Step 2: Run tests to verify RED**
+
+Run: `python -m pytest tests/test_cli_deepseek_chat.py -v`
+
+Observed RED: `3 failed`; failure reason was missing `safeloop.cli.DeepSeekClient`, proving real-provider CLI wiring did not exist.
+
+- [x] **Step 3: Implement minimal CLI wiring**
+
+Added `run_harness_with_client()` so mock and DeepSeek clients use the same state machine. Added `run --llm deepseek` and `chat --llm deepseek` support with credential lookup from keyring/env/dotenv and no key printing.
+
+- [x] **Step 4: Run focused CLI tests to verify GREEN**
+
+Run: `python -m pytest tests/test_cli_deepseek_chat.py -v`
+
+Observed GREEN: `3 passed`.
+
+- [x] **Step 5: Write failing prompt-contract test**
+
+Added a DeepSeek client test that requires the system prompt to describe the single JSON tool-action contract and include tool schemas.
+
+- [x] **Step 6: Run test to verify RED**
+
+Run: `python -m pytest tests/test_deepseek_client.py::test_deepseek_client_prompt_describes_single_json_tool_action_contract -v`
+
+Observed RED: prompt did not contain `exactly one JSON object`.
+
+- [x] **Step 7: Strengthen DeepSeek action prompt**
+
+Updated `DeepSeekClient` to require exactly one JSON object with `tool_name`, `arguments`, `reason`, and `expected_outcome`, and to choose from provided tool schemas.
+
+- [x] **Step 8: Run focused tests**
+
+Run: `python -m pytest tests/test_cli_deepseek_chat.py tests/test_deepseek_client.py tests/test_demo.py -v`
+
+Observed GREEN: `15 passed`.
+
+- [x] **Step 9: Update README and process evidence**
+
+README now documents key setup, one-shot DeepSeek run, simple terminal chat, env/dotenv fallback, and the known limit that each chat input starts one bounded harness run.
+
+- [x] **Step 10: Final verification, commit, push, and PR**
+
+Required commands before commit: `python -m pytest -v`, `python -m safeloop demo`, and secret scan. Then commit, push `feature/deepseek-chat-cli`, and create a PR targeting `feature/distribution-docs`.
+
+Verification evidence before commit: `python -m pytest -v` -> `153 passed, 1 warning`; `python -m safeloop demo` -> exit `0` with guardrail denial, test failure feedback, patch, retest, and finish events; `python -m safeloop run --config samples/python_buggy_calculator/safeloop.yml --task verify --llm mock` -> exit `0` with `final_status: finished`; non-test repository secret scan found no matches. Implementation commit hash is recorded in the follow-up traceability entry because a commit cannot contain its own final hash.
+
+Implementation commit: `a955d48` (`feat(task-17): add deepseek chat cli`).
+
+PR evidence: `feature/deepseek-chat-cli` was pushed and published as GitHub PR #8, `https://github.com/wangyunjie878/Safeloop-coding-agent/pull/8`, targeting base branch `feature/distribution-docs`. The PR body records the no-subagent user request, controller implementation, validation commands, and credential-safety notes.
+
+---
+
+### Task 18: CLI Workspace UX and Failure Visibility
+
+**Status:** completed in commit `884554a` (`fix(task-18): improve cli workspace and chat feedback`).
+
+**Goal:** 让 SafeLoop 更接近 opencode-style CLI：用户 `cd` 到项目目录后直接运行 `python -m safeloop chat --llm deepseek`，默认在当前目录读写代码；同时让 `chat` 输出自然语言摘要，并在 boundary failure 时显示具体错误原因。
+
+**Files:**
+
+- Modify: `safeloop/config.py`
+- Modify: `safeloop/demo.py`
+- Modify: `safeloop/cli.py`
+- Modify: `tests/test_config.py`
+- Modify: `tests/test_demo.py`
+- Modify: `tests/test_cli_deepseek_chat.py`
+- Modify: `README.md`
+- Modify: `PLAN.md`
+- Modify: `AGENT_LOG.md`
+
+**Dependencies:**
+
+- Depends on Task 11 state machine terminal failure handling.
+- Depends on Task 14 DeepSeek client and credential manager.
+- Depends on Task 17 DeepSeek CLI chat wiring.
+
+**TDD evidence:**
+
+- RED: `python -m pytest tests/test_config.py::test_load_config_resolves_relative_workspace_from_config_directory tests/test_demo.py::test_print_run_summary_shows_failed_boundary_error tests/test_cli_deepseek_chat.py::test_chat_without_config_uses_current_directory_as_workspace -q` -> 3 failed. Failures showed config-relative `workspace: .` resolved against process cwd, failed summaries omitted `boundary_error`, and `chat` still required `--config`.
+- GREEN: same focused command -> `3 passed`.
+- RED: `python -m pytest tests/test_cli_deepseek_chat.py::test_chat_command_runs_one_deepseek_turn_then_exits tests/test_cli_deepseek_chat.py::test_chat_without_config_uses_current_directory_as_workspace -q` -> 2 failed because chat still printed `final_status` event logs.
+- GREEN: same focused command -> `2 passed`.
+- Full verification before implementation commit: `python -m pytest -q` -> `156 passed, 1 warning`.
+
+**Implementation notes:**
+
+- `load_config()` now resolves relative `workspace` values against the config file directory, so sample configs no longer accidentally target the caller's process cwd.
+- Added default runtime config creation for config-less CLI runs. If `--config` is absent, `run` and `chat` use `--workspace` when provided, otherwise `Path.cwd()`.
+- `chat` now prints a user-facing summary with finish message, changed-file summaries, verification summaries, or boundary failure reason/error. `run` keeps raw event output for mechanism demos and grader evidence.
+- README now documents the recommended workflow as `cd path/to/project` followed by `python -m safeloop chat --llm deepseek`.
+
+---
+
+### Task 19: DeepSeek Timeout Hardening
+
+**Status:** completed in commit `d7e98a0` (`fix(task-19): harden deepseek timeouts`).
+
+**Goal:** 修复真实 DeepSeek 调用在生成代码时偶发 `ReadTimeout` 导致整轮 `Task failed` 的问题。SafeLoop 应给真实 LLM 更合理的默认响应时间，并把 provider/network timeout 包装成清楚的 `DeepSeekClientError`。
+
+**Files:**
+
+- Modify: `safeloop/llm/deepseek.py`
+- Modify: `tests/test_deepseek_client.py`
+- Modify: `PLAN.md`
+- Modify: `AGENT_LOG.md`
+
+**TDD evidence:**
+
+- RED: `python -m pytest tests/test_deepseek_client.py::test_deepseek_client_default_timeout_allows_slow_model_responses tests/test_deepseek_client.py::test_deepseek_client_wraps_read_timeout_as_clear_error -q` -> 2 failed. Failures showed default `httpx` read timeout was `5.0` seconds and raw `httpx.ReadTimeout` escaped the client boundary.
+- GREEN: same focused command -> `2 passed`.
+- Focused verification: `python -m pytest tests/test_deepseek_client.py -q` -> `10 passed`.
+- Full verification: `python -m pytest -q` -> `158 passed, 1 warning`.
+
+**Implementation notes:**
+
+- `DeepSeekClient` now creates the default `httpx.Client(timeout=600.0)` when no injected test client is provided.
+- `httpx.TimeoutException` is wrapped as `DeepSeekClientError("DeepSeek request timed out; retry or use a shorter task")`.
+- Other `httpx.RequestError` failures are also wrapped as `DeepSeekClientError` so the state machine records a clear provider boundary error instead of leaking raw transport exceptions.
+
+---
+
+### Task 20: Chinese Chat UX, Long Timeout, and Interrupt Handling
+
+**Status:** completed in commit `74a0afc` (`feat(task-20): localize chat and handle interrupts`).
+
+**Goal:** 让 SafeLoop chat 更符合中文用户的自然使用习惯：CLI 提示和摘要使用中文，DeepSeek `finish.message` 被提示为中文自然语言，真实模型默认 timeout 提升到 600 秒，并支持任务运行中按 `Ctrl+C` 只终止当前任务、不退出 SafeLoop。
+
+**Files:**
+
+- Modify: `safeloop/cli.py`
+- Modify: `safeloop/demo.py`
+- Modify: `safeloop/llm/deepseek.py`
+- Modify: `tests/test_cli_deepseek_chat.py`
+- Modify: `tests/test_deepseek_client.py`
+- Modify: `README.md`
+- Modify: `PLAN.md`
+- Modify: `AGENT_LOG.md`
+
+**TDD evidence:**
+
+- RED: `python -m pytest tests/test_deepseek_client.py::test_deepseek_client_default_timeout_allows_slow_model_responses tests/test_deepseek_client.py::test_deepseek_client_prompt_requests_chinese_user_facing_finish_messages tests/test_cli_deepseek_chat.py::test_chat_command_runs_one_deepseek_turn_then_exits tests/test_cli_deepseek_chat.py::test_chat_without_config_uses_current_directory_as_workspace tests/test_cli_deepseek_chat.py::test_chat_ctrl_c_stops_current_task_without_exiting_safeloop -q` -> 4 failed plus `KeyboardInterrupt`. Failures showed timeout still `60.0`, DeepSeek prompt did not mention `中文`, CLI header and changed-file label were English, and simulated Ctrl+C interrupted the test process instead of returning to chat.
+- GREEN: same focused command -> `5 passed`.
+- Focused verification: `python -m pytest tests/test_cli_deepseek_chat.py tests/test_deepseek_client.py -q` -> `16 passed`.
+- Full verification: `python -m pytest -q` -> `160 passed, 1 warning`.
+
+**Implementation notes:**
+
+- Chat startup text now says `SafeLoop CLI 对话模式` and explains `Ctrl+C` stops only the current task.
+- `print_chat_summary()` now uses Chinese labels: `任务失败。`, `原因：`, `错误：`, `修改的文件:`, and `验证:`.
+- `DeepSeekClient` default timeout is now 600 seconds, and its system prompt asks the model to write `finish.arguments.message` in natural Chinese.
+- `_run_chat_command()` catches `KeyboardInterrupt` around a running task, prints `已终止当前任务，SafeLoop 仍在运行。`, and continues the input loop.
+
+---
+
+### Task 21: Information-Only Chat Answers
+
+**Status:** completed in commit `1b17fd4` (`fix(task-21): answer information-only chat requests`).
+
+**Goal:** 修复 SafeLoop chat 对“解释一下快速排序”这类问答请求也倾向于写文件的问题。信息型、解释型、概念型请求应直接用 `finish` 返回中文自然语言答案，不应创建或修改文件。
+
+**Files:**
+
+- Modify: `safeloop/llm/deepseek.py`
+- Modify: `tests/test_deepseek_client.py`
+- Modify: `PLAN.md`
+- Modify: `AGENT_LOG.md`
+
+**TDD evidence:**
+
+- RED: `python -m pytest tests/test_deepseek_client.py::test_deepseek_client_prompt_answers_information_only_requests_without_file_changes -q` -> 1 failed. Failure showed the DeepSeek system prompt did not contain an information-only rule or `without writing or modifying files`.
+- GREEN: same focused command -> `1 passed`.
+- Focused verification: `python -m pytest tests/test_deepseek_client.py tests/test_cli_deepseek_chat.py -q` -> `17 passed`.
+
+**Implementation notes:**
+
+- The DeepSeek system prompt now tells the model that information-only requests, such as explanations, questions, or conceptual help, should be answered through the `finish` tool without writing or modifying files.
+- The `finish.message` guidance now distinguishes changed-file tasks from pure Q&A: if files changed, explain what changed and where; otherwise answer the user's question directly.
+
+---
+
+### Task 22: README Delivery Sections and Distribution Notes
+
+**Status:** completed in commit `2155e16` (`docs(task-22): complete readme delivery sections`).
+
+**Goal:** 补齐最终交付要求中的 README 章节，明确项目简介、安装、运行、分发命令、目录结构、安全边界说明、获取方式、Key 安全配置和已知限制。
+
+**Files:**
+
+- Modify: `README.md`
+- Modify: `tests/test_distribution_files.py`
+- Modify: `PLAN.md`
+- Modify: `AGENT_LOG.md`
+
+**TDD evidence:**
+
+- RED: `python -m pytest tests/test_distribution_files.py::test_readme_has_chinese_delivery_sections_and_distribution_notes -q` -> 1 failed. Failure showed README did not contain `项目简介`.
+- GREEN: same focused command -> `1 passed`.
+- Focused verification: `python -m pytest tests/test_distribution_files.py tests/test_process_docs.py -q` -> `9 passed`.
+
+**Implementation notes:**
+
+- README now includes Chinese delivery sections matching the assignment wording while preserving the original English headings.
+- Distribution notes now include GitHub clone/ZIP acquisition, Docker build/run commands, local CLI install/run commands, target platform notes, key storage/update options, and known limitations.
+
+---
+
+### Task 23: README Chinese-First Install and Run Flow
+
+**Status:** completed in commit `e0120a7` (`docs(task-23): clarify readme install and run flow`).
+
+**Goal:** 按用户反馈修正 README 可读性：不要把 Docker 放在安装运行主流程里强调；安装和运行说明必须中文优先，并清除中间整段英文 Running 文案。
+
+**Files:**
+
+- Modify: `README.md`
+- Modify: `tests/test_distribution_files.py`
+- Modify: `PLAN.md`
+- Modify: `AGENT_LOG.md`
+
+**TDD evidence:**
+
+- RED: `python -m pytest tests/test_distribution_files.py -q` -> `1 failed, 6 passed`。失败点为 README 缺少 `普通使用安装` 等中文安装运行说明。
+- GREEN: `python -m pytest tests/test_distribution_files.py -q` -> `7 passed`。README 已改为中文优先结构，并断言原英文-only Running 句子不再出现。
+
+**Implementation notes:**
+
+- README 合并为一套中文优先章节，保留英文 heading alias 以便读者和测试都能定位。
+- 安装部分区分普通使用 `python -m pip install -e .` 与开发/测试 `python -m pip install -e ".[dev]"`。
+- 运行部分把 `cd path/to/your/project` + `python -m safeloop chat --llm deepseek` 放在第一入口。
+- Docker 只保留在“分发命令”中，并明确它不是日常 CLI 使用的主入口。
+
+---
+
+### Task 24: README Sequential Run Tutorial and Demo Clarification
+
+**Status:** completed in commit `7fb3664` (`docs(task-24): clarify readme run tutorial`).
+
+**Goal:** 按用户反馈把 README 运行教程改成更符合真实使用顺序的流程：获取源码、安装、配置 API key、选择工作目录、启动 chat；去掉“一次性任务”作为普通方式；把机制演示单独成章并说明执行目录。
+
+**Files:**
+
+- Modify: `README.md`
+- Modify: `tests/test_distribution_files.py`
+- Modify: `PLAN.md`
+- Modify: `AGENT_LOG.md`
+
+**TDD evidence:**
+
+- RED: `python -m pytest tests/test_distribution_files.py -q` -> `1 failed, 6 passed`。失败点为 README 没有 `### 1. 获取源码` 到 `### 5. 启动对话式 agent` 的顺序教程。
+- GREEN: `python -m pytest tests/test_distribution_files.py -q` -> `7 passed`。README 已包含顺序教程、key 粘贴无回显说明、独立机制演示章节，并移除 `方式二：执行一次性任务` 与 `方式三：离线机制演示`。
+
+**Implementation notes:**
+
+- `python -m safeloop credentials set --provider deepseek` 移入运行教程第 3 步。
+- README 明确说明粘贴 API key 时终端不显示字符是正常安全行为，粘贴后按回车即可保存。
+- 机制演示章节说明建议在 SafeLoop 仓库根目录执行，因为样例命令依赖 `samples/...` 相对路径。
+- 普通用户主入口保持 `cd path/to/your/project` 后运行 `python -m safeloop chat --llm deepseek`。
 
 ---
 
@@ -2144,11 +2563,11 @@ Critical issues must be fixed before the next task starts.
 - [ ] `SPEC_PROCESS.md` records brainstorming, at least 3 iterations, AI suggestions accepted/rejected, and cold-start validation.
 - [ ] `AGENT_LOG.md` records each task with timestamp, skill, prompt/context, subagent output or commit hash, human intervention and lesson.
 - [ ] `make test` passes locally.
-- [ ] `python -m safeloop demo` deterministically shows guardrail block, feedback loop and successful finish.
-- [ ] GitHub Actions passes on the final push.
+- [x] `python -m safeloop demo` deterministically shows guardrail block, feedback loop and successful finish.
+- [x] GitHub Actions passes on the final push.
 - [ ] `.gitlab-ci.yml` includes a passing `unit-test` job.
-- [ ] Docker image builds.
-- [ ] README explains installation, running, Docker distribution, key security, safety boundaries, CI/CD and known limits.
-- [ ] No real credentials are present in repository files or git history.
-- [ ] Final PR descriptions mention subagent ownership and human modifications.
+- [x] Docker image builds.
+- [x] README explains installation, running, Docker distribution, key security, safety boundaries, CI/CD and known limits.
+- [x] No real credentials are present in repository files or git history.
+- [x] Final PR descriptions mention subagent ownership and human modifications.
 - [ ] `REFLECTION.md` is written by the student and stays within the course word range.

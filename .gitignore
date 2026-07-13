@@ -16,3 +16,4 @@ build/
 .codex/
 demo/
 .worktrees/
+.superpowers/
