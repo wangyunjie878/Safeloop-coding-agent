@@ -12,7 +12,7 @@ class DeepSeekClientError(RuntimeError):
     pass
 
 
-_DEFAULT_TIMEOUT_SECONDS = 60.0
+_DEFAULT_TIMEOUT_SECONDS = 600.0
 
 
 class DeepSeekClient:
@@ -65,7 +65,9 @@ class DeepSeekClient:
                     "You are SafeLoop, a coding agent harness. Respond with exactly one JSON object "
                     "and no Markdown. The JSON object must contain tool_name, arguments, reason, "
                     "and expected_outcome. Choose one available tool from the provided tool_schemas. "
-                    "Use feedback from failed tools or tests to decide the next action."
+                    "Use feedback from failed tools or tests to decide the next action. "
+                    "When you call the finish tool, write arguments.message in natural Chinese (中文) "
+                    "for the user, explaining what you changed and where the result is."
                 ),
             },
             {"role": "user", "content": str(redact_secrets(request.task, known_secrets=request.known_secrets))},

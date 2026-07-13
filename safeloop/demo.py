@@ -98,30 +98,30 @@ def print_run_summary(run: RunRecord, events: list[Event]) -> None:
 
 def print_chat_summary(run: RunRecord, events: list[Event]) -> None:
     if run.status == "finished":
-        message = _latest_event_message(events, "finished") or "Done."
+        message = _latest_event_message(events, "finished") or "已完成。"
         print(message)
     elif run.status == "failed":
-        print("Task failed.")
+        print("任务失败。")
         failure = _latest_event(events, "failed")
         if failure is not None:
             reason = failure.payload.get("reason")
             error = failure.payload.get("error")
             if reason:
-                print(f"Reason: {reason}")
+                print(f"原因：{reason}")
             if error:
-                print(f"Error: {error}")
+                print(f"错误：{error}")
     else:
-        print(f"Task ended with status: {run.status}.")
+        print(f"任务结束，状态：{run.status}。")
 
     changed_files = _successful_tool_summaries(events, {"write_file", "patch_file"})
     if changed_files:
-        print("Changed files:")
+        print("修改的文件:")
         for summary in changed_files:
             print(f"- {summary}")
 
     checks = _successful_tool_summaries(events, {"run_command", "run_tests"})
     if checks:
-        print("Verification:")
+        print("验证:")
         for summary in checks:
             print(f"- {summary}")
 

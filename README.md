@@ -41,6 +41,8 @@ cd path/to/your/project
 python -m safeloop chat --llm deepseek
 ```
 
+Chat mode prints Chinese user-facing output by default. While a task is running, press `Ctrl+C` to stop only the current task and return to the `safeloop>` prompt. Use `exit` or `quit` to leave SafeLoop.
+
 By default, `run` and `chat` use the directory you are currently in as the workspace. Use `--workspace path/to/project` when you want to target a different directory, or `--config safeloop.yml` when you need project-specific settings such as a custom test command, blocked commands, timeouts, or model defaults.
 
 For machines where OS keyring is not available, use an environment variable or a local `.env` file that is never committed:
@@ -100,4 +102,4 @@ Workflow definitions are checked in at `.github/workflows/ci.yml` and `.gitlab-c
 
 ## Known Limits
 
-The CLI supports mock and DeepSeek-backed runs. The `chat` command is intentionally simple: each user message starts one bounded harness run, prints a user-facing summary, and waits for the next message. The `run` command still prints mechanism events for deterministic demos and grading evidence. The WebUI is intentionally minimal, and Docker distribution is local build/run support rather than a published registry image or hosted service.
+The CLI supports mock and DeepSeek-backed runs. The `chat` command is intentionally simple: each user message starts one bounded harness run, prints a Chinese user-facing summary, and waits for the next message. DeepSeek calls use a 600-second default timeout for longer code-generation turns. The `run` command still prints mechanism events for deterministic demos and grading evidence. The WebUI is intentionally minimal, and Docker distribution is local build/run support rather than a published registry image or hosted service.

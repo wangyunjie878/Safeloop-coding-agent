@@ -51,6 +51,16 @@ class _WorkspaceDeepSeekClient:
         return self.responses.pop(0)
 
 
+class _InterruptingDeepSeekClient:
+    def __init__(self, api_key: str, model: str, base_url: str = "https://api.deepseek.com") -> None:
+        self.api_key = api_key
+        self.model = model
+        self.base_url = base_url
+
+    def complete(self, request) -> str:
+        raise KeyboardInterrupt
+
+
 def _write_config(tmp_path: Path, *, credential_backend: str = "env", model: str = "deepseek-v4-pro") -> Path:
     config_path = tmp_path / "safeloop.yml"
     config_path.write_text(
@@ -151,7 +161,7 @@ def test_chat_command_runs_one_deepseek_turn_then_exits(
 
     output = capsys.readouterr().out
     assert exit_code == 0
-    assert "SafeLoop CLI chat" in output
+    assert "SafeLoop CLI 对话模式" in output
     assert "deepseek run complete" in output
     assert "final_status:" not in output
     assert _FakeDeepSeekClient.created[0]["model"] == "deepseek-v4-flash"
@@ -175,4 +185,24 @@ def test_chat_without_config_uses_current_directory_as_workspace(
     assert exit_code == 0
     assert (tmp_path / "count_primes.py").read_text(encoding="utf-8") == "print(17)\n"
     assert "created count_primes.py" in output
+    assert "修改的文件:" in output
     assert "final_status:" not in output
+
+
+def test_chat_ctrl_c_stops_current_task_without_exiting_safeloop(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "sk-chat-cli")
+    monkeypatch.setattr(cli, "DeepSeekClient", _InterruptingDeepSeekClient)
+    inputs = iter(["long task", "exit"])
+    monkeypatch.setattr("builtins.input", lambda prompt="": next(inputs))
+
+    exit_code = cli.main(["chat", "--llm", "deepseek", "--credential-backend", "env"])
+
+    output = capsys.readouterr().out
+    assert exit_code == 0
+    assert "正在执行任务" in output
+    assert "已终止当前任务，SafeLoop 仍在运行。" in output

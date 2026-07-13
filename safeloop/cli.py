@@ -135,8 +135,8 @@ def _build_deepseek_client(config: HarnessConfig, args: argparse.Namespace) -> D
 def _run_chat_command(args: argparse.Namespace) -> int:
     config = _resolve_runtime_config(args)
     llm_provider = config.llm_provider
-    print("SafeLoop CLI chat")
-    print("Type exit or quit to stop.")
+    print("SafeLoop CLI 对话模式")
+    print("输入 exit 或 quit 退出。任务运行时按 Ctrl+C 只终止当前任务。")
 
     while True:
         try:
@@ -150,19 +150,25 @@ def _run_chat_command(args: argparse.Namespace) -> int:
         if not task:
             continue
 
-        if llm_provider == "deepseek":
-            llm_client = _build_deepseek_client(config, args)
-            if llm_client is None:
-                return 1
-            run, events = run_harness_with_config(task, config, llm_client)
-        else:
-            mock_responses = list(args.mock_response) or [_DEFAULT_MOCK_FINISH_RESPONSE]
-            if args.config:
-                run, events = run_harness(task, Path(args.config), mock_responses)
+        print("正在执行任务，按 Ctrl+C 可终止当前任务...")
+        try:
+            if llm_provider == "deepseek":
+                llm_client = _build_deepseek_client(config, args)
+                if llm_client is None:
+                    return 1
+                run, events = run_harness_with_config(task, config, llm_client)
             else:
-                from .llm.mock import MockLLMClient
+                mock_responses = list(args.mock_response) or [_DEFAULT_MOCK_FINISH_RESPONSE]
+                if args.config:
+                    run, events = run_harness(task, Path(args.config), mock_responses)
+                else:
+                    from .llm.mock import MockLLMClient
 
-                run, events = run_harness_with_config(task, config, MockLLMClient(mock_responses))
+                    run, events = run_harness_with_config(task, config, MockLLMClient(mock_responses))
+        except KeyboardInterrupt:
+            print()
+            print("已终止当前任务，SafeLoop 仍在运行。")
+            continue
         print_chat_summary(run, events)
 
 

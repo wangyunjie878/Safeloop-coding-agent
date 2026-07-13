@@ -53,9 +53,27 @@ def test_deepseek_client_default_timeout_allows_slow_model_responses():
     client = DeepSeekClient(api_key="sk-test")
 
     try:
-        assert client.http_client.timeout.read == 60.0
+        assert client.http_client.timeout.read == 600.0
     finally:
         client.http_client.close()
+
+
+def test_deepseek_client_prompt_requests_chinese_user_facing_finish_messages():
+    seen: dict[str, object] = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen["body"] = json.loads(request.content.decode("utf-8"))
+        return httpx.Response(200, json={"choices": [{"message": {"content": "ok"}}]})
+
+    http_client = httpx.Client(transport=httpx.MockTransport(handler))
+    client = DeepSeekClient(api_key="sk-test", http_client=http_client)
+
+    assert client.complete(LLMRequest(task="写一份快速排序示例", feedback=[], memories=[], events=[])) == "ok"
+
+    system_prompt = seen["body"]["messages"][0]["content"]
+    assert "中文" in system_prompt
+    assert "finish" in system_prompt
+    assert "message" in system_prompt
 
 
 def test_deepseek_client_prompt_describes_single_json_tool_action_contract():

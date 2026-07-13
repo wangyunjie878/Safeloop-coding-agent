@@ -2391,9 +2391,42 @@ PR evidence: `feature/deepseek-chat-cli` was pushed and published as GitHub PR #
 
 **Implementation notes:**
 
-- `DeepSeekClient` now creates the default `httpx.Client(timeout=60.0)` when no injected test client is provided.
+- `DeepSeekClient` now creates the default `httpx.Client(timeout=600.0)` when no injected test client is provided.
 - `httpx.TimeoutException` is wrapped as `DeepSeekClientError("DeepSeek request timed out; retry or use a shorter task")`.
 - Other `httpx.RequestError` failures are also wrapped as `DeepSeekClientError` so the state machine records a clear provider boundary error instead of leaking raw transport exceptions.
+
+---
+
+### Task 20: Chinese Chat UX, Long Timeout, and Interrupt Handling
+
+**Status:** implementation complete locally; commit hash to be recorded after commit.
+
+**Goal:** 让 SafeLoop chat 更符合中文用户的自然使用习惯：CLI 提示和摘要使用中文，DeepSeek `finish.message` 被提示为中文自然语言，真实模型默认 timeout 提升到 600 秒，并支持任务运行中按 `Ctrl+C` 只终止当前任务、不退出 SafeLoop。
+
+**Files:**
+
+- Modify: `safeloop/cli.py`
+- Modify: `safeloop/demo.py`
+- Modify: `safeloop/llm/deepseek.py`
+- Modify: `tests/test_cli_deepseek_chat.py`
+- Modify: `tests/test_deepseek_client.py`
+- Modify: `README.md`
+- Modify: `PLAN.md`
+- Modify: `AGENT_LOG.md`
+
+**TDD evidence:**
+
+- RED: `python -m pytest tests/test_deepseek_client.py::test_deepseek_client_default_timeout_allows_slow_model_responses tests/test_deepseek_client.py::test_deepseek_client_prompt_requests_chinese_user_facing_finish_messages tests/test_cli_deepseek_chat.py::test_chat_command_runs_one_deepseek_turn_then_exits tests/test_cli_deepseek_chat.py::test_chat_without_config_uses_current_directory_as_workspace tests/test_cli_deepseek_chat.py::test_chat_ctrl_c_stops_current_task_without_exiting_safeloop -q` -> 4 failed plus `KeyboardInterrupt`. Failures showed timeout still `60.0`, DeepSeek prompt did not mention `中文`, CLI header and changed-file label were English, and simulated Ctrl+C interrupted the test process instead of returning to chat.
+- GREEN: same focused command -> `5 passed`.
+- Focused verification: `python -m pytest tests/test_cli_deepseek_chat.py tests/test_deepseek_client.py -q` -> `16 passed`.
+- Full verification: `python -m pytest -q` -> `160 passed, 1 warning`.
+
+**Implementation notes:**
+
+- Chat startup text now says `SafeLoop CLI 对话模式` and explains `Ctrl+C` stops only the current task.
+- `print_chat_summary()` now uses Chinese labels: `任务失败。`, `原因：`, `错误：`, `修改的文件:`, and `验证:`.
+- `DeepSeekClient` default timeout is now 600 seconds, and its system prompt asks the model to write `finish.arguments.message` in natural Chinese.
+- `_run_chat_command()` catches `KeyboardInterrupt` around a running task, prints `已终止当前任务，SafeLoop 仍在运行。`, and continues the input loop.
 
 ---
 
