@@ -1092,7 +1092,7 @@ Update `PLAN.md` Task 7 with the commit hash and append an `AGENT_LOG.md` entry.
 - 参数缺失或类型错误返回失败 `ToolResult`，不抛出未捕获异常。
 - `finish` 返回 `ToolResult(success=True, summary="finished")`，并在 metadata 中标记 `finish=True`。
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # tests/test_dispatcher.py
@@ -1173,7 +1173,7 @@ def test_dispatcher_finish_sets_metadata(tmp_path: Path):
     assert result.metadata["finish"] is True
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_dispatcher.py -v`
 
@@ -1672,29 +1672,39 @@ Run: `python -m pytest tests/test_demo.py tests/test_cli_bootstrap.py -v`
 
 Expected: FAIL because `demo` and `run` commands are not wired.
 
-- [ ] **Step 3: Write minimal implementation**
+Observed RED: `2 failed, 3 passed`; `demo` returned placeholder exit code `1`, and `run` rejected `--config`, `--task`, and `--mock-response`. Follow-up RED for the real demo mechanism failed because the copied sample workspace did not show `patch_file success=True` or `run_tests success=True`.
+
+- [x] **Step 3: Write minimal implementation**
 
 Wire CLI subcommands to state machine and create the deterministic sample project. The demo must not call a real provider.
 
-- [ ] **Step 4: Run focused tests**
+- [x] **Step 4: Run focused tests**
 
 Run: `python -m pytest tests/test_demo.py tests/test_cli_bootstrap.py -v`
 
 Expected: PASS.
 
-- [ ] **Step 5: Run demo manually**
+Observed GREEN: `6 passed in 4.21s`.
+
+- [x] **Step 5: Run demo manually**
 
 Run: `python -m safeloop demo`
 
 Expected: Exit 0 and output contains `guardrail_blocked`, `feedback_added`, and `finished`.
 
-- [ ] **Step 6: Run full tests**
+Observed GREEN: exit `0`; stdout contained `guardrail_blocked`, `feedback_added test_failure`, `patch_file success=True`, `run_tests success=True`, and `finished`.
+
+`make demo` was not runnable in this Windows shell because `make` is not installed; the underlying target command `python -m safeloop demo` was verified directly.
+
+- [x] **Step 6: Run full tests**
 
 Run: `make test`
 
 Expected: PASS.
 
-- [ ] **Step 7: Commit and log**
+Observed GREEN: `python -m pytest -v` -> `134 passed in 9.89s`.
+
+- [x] **Step 7: Commit and log**
 
 ```bash
 git add safeloop/cli.py safeloop/demo.py tests/test_demo.py tests/test_cli_bootstrap.py samples Makefile PLAN.md AGENT_LOG.md
@@ -1702,6 +1712,10 @@ git commit -m "feat(task-12): add cli commands and mechanism demo"
 ```
 
 Update `PLAN.md` Task 12 with the commit hash and append an `AGENT_LOG.md` entry.
+
+Implementation commit: `5e11b3f` (`feat(task-12): add cli commands and mechanism demo`).
+
+Review-fix commit: `6111087` (`fix(task-12): allow default mock run`) addresses reviewer Rawls's Important finding that the documented `run --config ... --task ... --llm mock` interface required an undocumented `--mock-response`. RED: focused Task 12 tests failed because default mock run returned exit code `2`. GREEN: focused Task 12 tests `7 passed`; documented sample command exited `0` with `final_status: finished`; full suite `135 passed`.
 
 ---
 
@@ -1734,7 +1748,7 @@ Update `PLAN.md` Task 12 with the commit hash and append an `AGENT_LOG.md` entry
 - 缺失 run 返回 404。
 - WebUI 不显示 secret，事件 payload 使用 redaction。
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # tests/test_web.py
@@ -1798,29 +1812,35 @@ def test_missing_run_returns_404():
     assert response.status_code == 404
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python -m pytest tests/test_web.py -v`
 
 Expected: FAIL with missing `safeloop.web`.
 
-- [ ] **Step 3: Write minimal implementation**
+Observed RED: `python -m pytest tests/test_web.py tests/test_cli_bootstrap.py -v` failed during collection with `ModuleNotFoundError: No module named 'safeloop.web'`.
+
+- [x] **Step 3: Write minimal implementation**
 
 Implement FastAPI app, JSON endpoints, simple HTML, and CLI web command.
 
-- [ ] **Step 4: Run focused tests**
+- [x] **Step 4: Run focused tests**
 
 Run: `python -m pytest tests/test_web.py -v`
 
 Expected: PASS.
 
-- [ ] **Step 5: Run full tests**
+Observed GREEN: `python -m pytest tests/test_web.py tests/test_cli_bootstrap.py -v` -> `7 passed, 1 warning`.
+
+- [x] **Step 5: Run full tests**
 
 Run: `make test`
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit and log**
+Observed GREEN: `python -m pytest -v` -> `139 passed, 1 warning`.
+
+- [x] **Step 6: Commit and log**
 
 ```bash
 git add safeloop/web.py safeloop/cli.py tests/test_web.py pyproject.toml PLAN.md AGENT_LOG.md
@@ -1828,6 +1848,18 @@ git commit -m "feat(task-13): add fastapi webui"
 ```
 
 Update `PLAN.md` Task 13 with the commit hash and append an `AGENT_LOG.md` entry.
+
+Implementation commit: `756639d` (`feat(task-13): add fastapi webui`).
+
+Hash traceability note: the implementation hash was recorded in this follow-up evidence update because a commit cannot contain its own final hash.
+
+Review-fix commit: `b561d9d` (`fix(task-13): redact web run responses`) closes reviewer Descartes's Critical finding that Web run responses could echo configured runtime secrets through raw `RunRecord.task`. RED: focused Task 13 tests failed because `POST /api/runs` returned `alpha-token-123`. GREEN: focused Task 13 tests `9 passed, 1 warning`; full suite `141 passed, 1 warning`. The `tests/test_cli_bootstrap.py` update is part of the Task 13 CLI interface because `web` changed from placeholder to real `uvicorn` runner.
+
+Re-review: reviewer Maxwell confirmed the Descartes Critical is closed, `/api/demo` smoke coverage exists, the `web` CLI bootstrap update is within Task 13 scope, and there are no new Critical or Important issues. Controller verification after the fix: focused Task 13 tests `9 passed, 1 warning`; full suite `141 passed, 1 warning`; `git diff --check` clean; secret scan found no matches.
+
+PR5 branch review gate: a fresh final reviewer subagent (`Averroes`) was attempted for the full Task 12 + Task 13 branch review, but the subagent platform returned a usage-limit error before producing a review. The controller therefore performed the branch review against the full PR5 diff (`6d63d9c..5d599ba`) and found no new Critical or Important issues. Fresh PR-before-push verification: `python -m pytest -v` -> `141 passed, 1 warning`; `python -m safeloop demo` -> exit `0` with guardrail/test-failure/patch/pass/finish events; `python -m safeloop run --config samples/python_buggy_calculator/safeloop.yml --task verify --llm mock` -> exit `0` with `final_status: finished`; `git diff --check` clean; secret scan found no matches.
+
+GitHub PR: `https://github.com/wangyunjie878/Safeloop-coding-agent/pull/6`.
 
 ---
 
