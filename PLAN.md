@@ -2509,6 +2509,33 @@ PR evidence: `feature/deepseek-chat-cli` was pushed and published as GitHub PR #
 
 ---
 
+### Task 24: README Sequential Run Tutorial and Demo Clarification
+
+**Status:** completed; implementation commit hash to be recorded after commit.
+
+**Goal:** 按用户反馈把 README 运行教程改成更符合真实使用顺序的流程：获取源码、安装、配置 API key、选择工作目录、启动 chat；去掉“一次性任务”作为普通方式；把机制演示单独成章并说明执行目录。
+
+**Files:**
+
+- Modify: `README.md`
+- Modify: `tests/test_distribution_files.py`
+- Modify: `PLAN.md`
+- Modify: `AGENT_LOG.md`
+
+**TDD evidence:**
+
+- RED: `python -m pytest tests/test_distribution_files.py -q` -> `1 failed, 6 passed`。失败点为 README 没有 `### 1. 获取源码` 到 `### 5. 启动对话式 agent` 的顺序教程。
+- GREEN: `python -m pytest tests/test_distribution_files.py -q` -> `7 passed`。README 已包含顺序教程、key 粘贴无回显说明、独立机制演示章节，并移除 `方式二：执行一次性任务` 与 `方式三：离线机制演示`。
+
+**Implementation notes:**
+
+- `python -m safeloop credentials set --provider deepseek` 移入运行教程第 3 步。
+- README 明确说明粘贴 API key 时终端不显示字符是正常安全行为，粘贴后按回车即可保存。
+- 机制演示章节说明建议在 SafeLoop 仓库根目录执行，因为样例命令依赖 `samples/...` 相对路径。
+- 普通用户主入口保持 `cd path/to/your/project` 后运行 `python -m safeloop chat --llm deepseek`。
+
+---
+
 ## Review Gates for Every Task
 
 Each task must pass two review gates before moving to the next task:

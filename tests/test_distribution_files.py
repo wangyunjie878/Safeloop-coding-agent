@@ -52,6 +52,30 @@ def test_readme_install_and_run_flow_is_chinese_first():
     ]:
         assert phrase in text
 
+    ordered_phrases = [
+        "### 1. 获取源码",
+        "### 2. 安装 SafeLoop",
+        "### 3. 配置 DeepSeek API key",
+        "### 4. 选择要操作的代码目录",
+        "### 5. 启动对话式 agent",
+    ]
+    positions = [text.index(phrase) for phrase in ordered_phrases]
+    assert positions == sorted(positions)
+
+    for phrase in [
+        "终端不会显示你粘贴的 key",
+        "粘贴完成后直接按回车即可",
+        "## 机制演示",
+        "建议在 SafeLoop 仓库根目录执行",
+    ]:
+        assert phrase in text
+
+    for removed_phrase in [
+        "方式二：执行一次性任务",
+        "方式三：离线机制演示",
+    ]:
+        assert removed_phrase not in text
+
     for english_only_phrase in [
         "Run the deterministic mechanism demo",
         "Run one CLI task with the offline mock LLM",
