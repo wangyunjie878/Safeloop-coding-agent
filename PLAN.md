@@ -2330,7 +2330,7 @@ PR evidence: `feature/deepseek-chat-cli` was pushed and published as GitHub PR #
 
 ### Task 18: CLI Workspace UX and Failure Visibility
 
-**Status:** implementation complete locally; commit hash to be recorded in follow-up traceability entry after commit.
+**Status:** completed in commit `884554a` (`fix(task-18): improve cli workspace and chat feedback`).
 
 **Goal:** 让 SafeLoop 更接近 opencode-style CLI：用户 `cd` 到项目目录后直接运行 `python -m safeloop chat --llm deepseek`，默认在当前目录读写代码；同时让 `chat` 输出自然语言摘要，并在 boundary failure 时显示具体错误原因。
 
@@ -2358,7 +2358,7 @@ PR evidence: `feature/deepseek-chat-cli` was pushed and published as GitHub PR #
 - GREEN: same focused command -> `3 passed`.
 - RED: `python -m pytest tests/test_cli_deepseek_chat.py::test_chat_command_runs_one_deepseek_turn_then_exits tests/test_cli_deepseek_chat.py::test_chat_without_config_uses_current_directory_as_workspace -q` -> 2 failed because chat still printed `final_status` event logs.
 - GREEN: same focused command -> `2 passed`.
-- Full verification: `python -m pytest -q` -> `156 passed, 1 warning`.
+- Full verification before implementation commit: `python -m pytest -q` -> `156 passed, 1 warning`.
 
 **Implementation notes:**
 
