@@ -2511,7 +2511,7 @@ PR evidence: `feature/deepseek-chat-cli` was pushed and published as GitHub PR #
 
 ### Task 24: README Sequential Run Tutorial and Demo Clarification
 
-**Status:** completed; implementation commit hash to be recorded after commit.
+**Status:** completed in commit `7fb3664` (`docs(task-24): clarify readme run tutorial`).
 
 **Goal:** 按用户反馈把 README 运行教程改成更符合真实使用顺序的流程：获取源码、安装、配置 API key、选择工作目录、启动 chat；去掉“一次性任务”作为普通方式；把机制演示单独成章并说明执行目录。
 
