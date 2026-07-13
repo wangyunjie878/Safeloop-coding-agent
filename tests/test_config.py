@@ -29,6 +29,30 @@ def test_load_config_applies_defaults(tmp_path: Path):
     assert config.allowed_paths == [workspace.resolve()]
 
 
+def test_load_config_resolves_relative_workspace_from_config_directory(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    workspace = tmp_path / "project"
+    workspace.mkdir()
+    other_cwd = tmp_path / "other"
+    other_cwd.mkdir()
+    config_path = workspace / "safeloop.yml"
+    config_path.write_text(
+        "workspace: .\n"
+        "test_command: python -m pytest\n"
+        "allowed_paths:\n"
+        "  - .\n",
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(other_cwd)
+
+    config = load_config(config_path)
+
+    assert config.workspace == workspace.resolve()
+    assert config.allowed_paths == [workspace.resolve()]
+
+
 def test_load_config_rejects_missing_workspace(tmp_path: Path):
     config_path = tmp_path / "safeloop.yml"
     config_path.write_text(

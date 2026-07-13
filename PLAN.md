@@ -2252,6 +2252,290 @@ CI evidence: GitHub Actions CI run #4 passed on commit `efa6659`, `https://githu
 
 ---
 
+### Task 17: DeepSeek CLI Chat and Real-Provider Run Wiring
+
+**Goal:** Turn the existing SafeLoop harness into a usable small opencode-style CLI that can run with a user-provided DeepSeek API key, while keeping CI and tests offline through mock/fake clients.
+
+**Files:**
+- Modify: `safeloop/cli.py`
+- Modify: `safeloop/demo.py`
+- Modify: `safeloop/llm/deepseek.py`
+- Modify: `tests/test_deepseek_client.py`
+- Create: `tests/test_cli_deepseek_chat.py`
+- Modify: `README.md`
+- Modify: `PLAN.md`
+- Modify: `AGENT_LOG.md`
+
+**Interfaces:**
+- Consumes: `CredentialManager`, `DeepSeekClient`, `AgentStateMachine`, `run_harness_with_client`
+- Produces: `python -m safeloop run --config safeloop.yml --task "..." --llm deepseek`
+- Produces: `python -m safeloop chat --config safeloop.yml --llm deepseek`
+- Produces: CLI flags `--model`, `--credential-backend`, and `--dotenv-path`
+
+- [x] **Step 1: Write failing CLI tests**
+
+Created `tests/test_cli_deepseek_chat.py` with offline fake DeepSeek coverage for configured env credentials, missing-key handling, and one interactive `chat` turn.
+
+- [x] **Step 2: Run tests to verify RED**
+
+Run: `python -m pytest tests/test_cli_deepseek_chat.py -v`
+
+Observed RED: `3 failed`; failure reason was missing `safeloop.cli.DeepSeekClient`, proving real-provider CLI wiring did not exist.
+
+- [x] **Step 3: Implement minimal CLI wiring**
+
+Added `run_harness_with_client()` so mock and DeepSeek clients use the same state machine. Added `run --llm deepseek` and `chat --llm deepseek` support with credential lookup from keyring/env/dotenv and no key printing.
+
+- [x] **Step 4: Run focused CLI tests to verify GREEN**
+
+Run: `python -m pytest tests/test_cli_deepseek_chat.py -v`
+
+Observed GREEN: `3 passed`.
+
+- [x] **Step 5: Write failing prompt-contract test**
+
+Added a DeepSeek client test that requires the system prompt to describe the single JSON tool-action contract and include tool schemas.
+
+- [x] **Step 6: Run test to verify RED**
+
+Run: `python -m pytest tests/test_deepseek_client.py::test_deepseek_client_prompt_describes_single_json_tool_action_contract -v`
+
+Observed RED: prompt did not contain `exactly one JSON object`.
+
+- [x] **Step 7: Strengthen DeepSeek action prompt**
+
+Updated `DeepSeekClient` to require exactly one JSON object with `tool_name`, `arguments`, `reason`, and `expected_outcome`, and to choose from provided tool schemas.
+
+- [x] **Step 8: Run focused tests**
+
+Run: `python -m pytest tests/test_cli_deepseek_chat.py tests/test_deepseek_client.py tests/test_demo.py -v`
+
+Observed GREEN: `15 passed`.
+
+- [x] **Step 9: Update README and process evidence**
+
+README now documents key setup, one-shot DeepSeek run, simple terminal chat, env/dotenv fallback, and the known limit that each chat input starts one bounded harness run.
+
+- [x] **Step 10: Final verification, commit, push, and PR**
+
+Required commands before commit: `python -m pytest -v`, `python -m safeloop demo`, and secret scan. Then commit, push `feature/deepseek-chat-cli`, and create a PR targeting `feature/distribution-docs`.
+
+Verification evidence before commit: `python -m pytest -v` -> `153 passed, 1 warning`; `python -m safeloop demo` -> exit `0` with guardrail denial, test failure feedback, patch, retest, and finish events; `python -m safeloop run --config samples/python_buggy_calculator/safeloop.yml --task verify --llm mock` -> exit `0` with `final_status: finished`; non-test repository secret scan found no matches. Implementation commit hash is recorded in the follow-up traceability entry because a commit cannot contain its own final hash.
+
+Implementation commit: `a955d48` (`feat(task-17): add deepseek chat cli`).
+
+PR evidence: `feature/deepseek-chat-cli` was pushed and published as GitHub PR #8, `https://github.com/wangyunjie878/Safeloop-coding-agent/pull/8`, targeting base branch `feature/distribution-docs`. The PR body records the no-subagent user request, controller implementation, validation commands, and credential-safety notes.
+
+---
+
+### Task 18: CLI Workspace UX and Failure Visibility
+
+**Status:** completed in commit `884554a` (`fix(task-18): improve cli workspace and chat feedback`).
+
+**Goal:** 让 SafeLoop 更接近 opencode-style CLI：用户 `cd` 到项目目录后直接运行 `python -m safeloop chat --llm deepseek`，默认在当前目录读写代码；同时让 `chat` 输出自然语言摘要，并在 boundary failure 时显示具体错误原因。
+
+**Files:**
+
+- Modify: `safeloop/config.py`
+- Modify: `safeloop/demo.py`
+- Modify: `safeloop/cli.py`
+- Modify: `tests/test_config.py`
+- Modify: `tests/test_demo.py`
+- Modify: `tests/test_cli_deepseek_chat.py`
+- Modify: `README.md`
+- Modify: `PLAN.md`
+- Modify: `AGENT_LOG.md`
+
+**Dependencies:**
+
+- Depends on Task 11 state machine terminal failure handling.
+- Depends on Task 14 DeepSeek client and credential manager.
+- Depends on Task 17 DeepSeek CLI chat wiring.
+
+**TDD evidence:**
+
+- RED: `python -m pytest tests/test_config.py::test_load_config_resolves_relative_workspace_from_config_directory tests/test_demo.py::test_print_run_summary_shows_failed_boundary_error tests/test_cli_deepseek_chat.py::test_chat_without_config_uses_current_directory_as_workspace -q` -> 3 failed. Failures showed config-relative `workspace: .` resolved against process cwd, failed summaries omitted `boundary_error`, and `chat` still required `--config`.
+- GREEN: same focused command -> `3 passed`.
+- RED: `python -m pytest tests/test_cli_deepseek_chat.py::test_chat_command_runs_one_deepseek_turn_then_exits tests/test_cli_deepseek_chat.py::test_chat_without_config_uses_current_directory_as_workspace -q` -> 2 failed because chat still printed `final_status` event logs.
+- GREEN: same focused command -> `2 passed`.
+- Full verification before implementation commit: `python -m pytest -q` -> `156 passed, 1 warning`.
+
+**Implementation notes:**
+
+- `load_config()` now resolves relative `workspace` values against the config file directory, so sample configs no longer accidentally target the caller's process cwd.
+- Added default runtime config creation for config-less CLI runs. If `--config` is absent, `run` and `chat` use `--workspace` when provided, otherwise `Path.cwd()`.
+- `chat` now prints a user-facing summary with finish message, changed-file summaries, verification summaries, or boundary failure reason/error. `run` keeps raw event output for mechanism demos and grader evidence.
+- README now documents the recommended workflow as `cd path/to/project` followed by `python -m safeloop chat --llm deepseek`.
+
+---
+
+### Task 19: DeepSeek Timeout Hardening
+
+**Status:** completed in commit `d7e98a0` (`fix(task-19): harden deepseek timeouts`).
+
+**Goal:** 修复真实 DeepSeek 调用在生成代码时偶发 `ReadTimeout` 导致整轮 `Task failed` 的问题。SafeLoop 应给真实 LLM 更合理的默认响应时间，并把 provider/network timeout 包装成清楚的 `DeepSeekClientError`。
+
+**Files:**
+
+- Modify: `safeloop/llm/deepseek.py`
+- Modify: `tests/test_deepseek_client.py`
+- Modify: `PLAN.md`
+- Modify: `AGENT_LOG.md`
+
+**TDD evidence:**
+
+- RED: `python -m pytest tests/test_deepseek_client.py::test_deepseek_client_default_timeout_allows_slow_model_responses tests/test_deepseek_client.py::test_deepseek_client_wraps_read_timeout_as_clear_error -q` -> 2 failed. Failures showed default `httpx` read timeout was `5.0` seconds and raw `httpx.ReadTimeout` escaped the client boundary.
+- GREEN: same focused command -> `2 passed`.
+- Focused verification: `python -m pytest tests/test_deepseek_client.py -q` -> `10 passed`.
+- Full verification: `python -m pytest -q` -> `158 passed, 1 warning`.
+
+**Implementation notes:**
+
+- `DeepSeekClient` now creates the default `httpx.Client(timeout=600.0)` when no injected test client is provided.
+- `httpx.TimeoutException` is wrapped as `DeepSeekClientError("DeepSeek request timed out; retry or use a shorter task")`.
+- Other `httpx.RequestError` failures are also wrapped as `DeepSeekClientError` so the state machine records a clear provider boundary error instead of leaking raw transport exceptions.
+
+---
+
+### Task 20: Chinese Chat UX, Long Timeout, and Interrupt Handling
+
+**Status:** completed in commit `74a0afc` (`feat(task-20): localize chat and handle interrupts`).
+
+**Goal:** 让 SafeLoop chat 更符合中文用户的自然使用习惯：CLI 提示和摘要使用中文，DeepSeek `finish.message` 被提示为中文自然语言，真实模型默认 timeout 提升到 600 秒，并支持任务运行中按 `Ctrl+C` 只终止当前任务、不退出 SafeLoop。
+
+**Files:**
+
+- Modify: `safeloop/cli.py`
+- Modify: `safeloop/demo.py`
+- Modify: `safeloop/llm/deepseek.py`
+- Modify: `tests/test_cli_deepseek_chat.py`
+- Modify: `tests/test_deepseek_client.py`
+- Modify: `README.md`
+- Modify: `PLAN.md`
+- Modify: `AGENT_LOG.md`
+
+**TDD evidence:**
+
+- RED: `python -m pytest tests/test_deepseek_client.py::test_deepseek_client_default_timeout_allows_slow_model_responses tests/test_deepseek_client.py::test_deepseek_client_prompt_requests_chinese_user_facing_finish_messages tests/test_cli_deepseek_chat.py::test_chat_command_runs_one_deepseek_turn_then_exits tests/test_cli_deepseek_chat.py::test_chat_without_config_uses_current_directory_as_workspace tests/test_cli_deepseek_chat.py::test_chat_ctrl_c_stops_current_task_without_exiting_safeloop -q` -> 4 failed plus `KeyboardInterrupt`. Failures showed timeout still `60.0`, DeepSeek prompt did not mention `中文`, CLI header and changed-file label were English, and simulated Ctrl+C interrupted the test process instead of returning to chat.
+- GREEN: same focused command -> `5 passed`.
+- Focused verification: `python -m pytest tests/test_cli_deepseek_chat.py tests/test_deepseek_client.py -q` -> `16 passed`.
+- Full verification: `python -m pytest -q` -> `160 passed, 1 warning`.
+
+**Implementation notes:**
+
+- Chat startup text now says `SafeLoop CLI 对话模式` and explains `Ctrl+C` stops only the current task.
+- `print_chat_summary()` now uses Chinese labels: `任务失败。`, `原因：`, `错误：`, `修改的文件:`, and `验证:`.
+- `DeepSeekClient` default timeout is now 600 seconds, and its system prompt asks the model to write `finish.arguments.message` in natural Chinese.
+- `_run_chat_command()` catches `KeyboardInterrupt` around a running task, prints `已终止当前任务，SafeLoop 仍在运行。`, and continues the input loop.
+
+---
+
+### Task 21: Information-Only Chat Answers
+
+**Status:** completed in commit `1b17fd4` (`fix(task-21): answer information-only chat requests`).
+
+**Goal:** 修复 SafeLoop chat 对“解释一下快速排序”这类问答请求也倾向于写文件的问题。信息型、解释型、概念型请求应直接用 `finish` 返回中文自然语言答案，不应创建或修改文件。
+
+**Files:**
+
+- Modify: `safeloop/llm/deepseek.py`
+- Modify: `tests/test_deepseek_client.py`
+- Modify: `PLAN.md`
+- Modify: `AGENT_LOG.md`
+
+**TDD evidence:**
+
+- RED: `python -m pytest tests/test_deepseek_client.py::test_deepseek_client_prompt_answers_information_only_requests_without_file_changes -q` -> 1 failed. Failure showed the DeepSeek system prompt did not contain an information-only rule or `without writing or modifying files`.
+- GREEN: same focused command -> `1 passed`.
+- Focused verification: `python -m pytest tests/test_deepseek_client.py tests/test_cli_deepseek_chat.py -q` -> `17 passed`.
+
+**Implementation notes:**
+
+- The DeepSeek system prompt now tells the model that information-only requests, such as explanations, questions, or conceptual help, should be answered through the `finish` tool without writing or modifying files.
+- The `finish.message` guidance now distinguishes changed-file tasks from pure Q&A: if files changed, explain what changed and where; otherwise answer the user's question directly.
+
+---
+
+### Task 22: README Delivery Sections and Distribution Notes
+
+**Status:** completed in commit `2155e16` (`docs(task-22): complete readme delivery sections`).
+
+**Goal:** 补齐最终交付要求中的 README 章节，明确项目简介、安装、运行、分发命令、目录结构、安全边界说明、获取方式、Key 安全配置和已知限制。
+
+**Files:**
+
+- Modify: `README.md`
+- Modify: `tests/test_distribution_files.py`
+- Modify: `PLAN.md`
+- Modify: `AGENT_LOG.md`
+
+**TDD evidence:**
+
+- RED: `python -m pytest tests/test_distribution_files.py::test_readme_has_chinese_delivery_sections_and_distribution_notes -q` -> 1 failed. Failure showed README did not contain `项目简介`.
+- GREEN: same focused command -> `1 passed`.
+- Focused verification: `python -m pytest tests/test_distribution_files.py tests/test_process_docs.py -q` -> `9 passed`.
+
+**Implementation notes:**
+
+- README now includes Chinese delivery sections matching the assignment wording while preserving the original English headings.
+- Distribution notes now include GitHub clone/ZIP acquisition, Docker build/run commands, local CLI install/run commands, target platform notes, key storage/update options, and known limitations.
+
+---
+
+### Task 23: README Chinese-First Install and Run Flow
+
+**Status:** completed in commit `e0120a7` (`docs(task-23): clarify readme install and run flow`).
+
+**Goal:** 按用户反馈修正 README 可读性：不要把 Docker 放在安装运行主流程里强调；安装和运行说明必须中文优先，并清除中间整段英文 Running 文案。
+
+**Files:**
+
+- Modify: `README.md`
+- Modify: `tests/test_distribution_files.py`
+- Modify: `PLAN.md`
+- Modify: `AGENT_LOG.md`
+
+**TDD evidence:**
+
+- RED: `python -m pytest tests/test_distribution_files.py -q` -> `1 failed, 6 passed`。失败点为 README 缺少 `普通使用安装` 等中文安装运行说明。
+- GREEN: `python -m pytest tests/test_distribution_files.py -q` -> `7 passed`。README 已改为中文优先结构，并断言原英文-only Running 句子不再出现。
+
+**Implementation notes:**
+
+- README 合并为一套中文优先章节，保留英文 heading alias 以便读者和测试都能定位。
+- 安装部分区分普通使用 `python -m pip install -e .` 与开发/测试 `python -m pip install -e ".[dev]"`。
+- 运行部分把 `cd path/to/your/project` + `python -m safeloop chat --llm deepseek` 放在第一入口。
+- Docker 只保留在“分发命令”中，并明确它不是日常 CLI 使用的主入口。
+
+---
+
+### Task 24: README Sequential Run Tutorial and Demo Clarification
+
+**Status:** completed in commit `7fb3664` (`docs(task-24): clarify readme run tutorial`).
+
+**Goal:** 按用户反馈把 README 运行教程改成更符合真实使用顺序的流程：获取源码、安装、配置 API key、选择工作目录、启动 chat；去掉“一次性任务”作为普通方式；把机制演示单独成章并说明执行目录。
+
+**Files:**
+
+- Modify: `README.md`
+- Modify: `tests/test_distribution_files.py`
+- Modify: `PLAN.md`
+- Modify: `AGENT_LOG.md`
+
+**TDD evidence:**
+
+- RED: `python -m pytest tests/test_distribution_files.py -q` -> `1 failed, 6 passed`。失败点为 README 没有 `### 1. 获取源码` 到 `### 5. 启动对话式 agent` 的顺序教程。
+- GREEN: `python -m pytest tests/test_distribution_files.py -q` -> `7 passed`。README 已包含顺序教程、key 粘贴无回显说明、独立机制演示章节，并移除 `方式二：执行一次性任务` 与 `方式三：离线机制演示`。
+
+**Implementation notes:**
+
+- `python -m safeloop credentials set --provider deepseek` 移入运行教程第 3 步。
+- README 明确说明粘贴 API key 时终端不显示字符是正常安全行为，粘贴后按回车即可保存。
+- 机制演示章节说明建议在 SafeLoop 仓库根目录执行，因为样例命令依赖 `samples/...` 相对路径。
+- 普通用户主入口保持 `cd path/to/your/project` 后运行 `python -m safeloop chat --llm deepseek`。
+
+---
+
 ## Review Gates for Every Task
 
 Each task must pass two review gates before moving to the next task:

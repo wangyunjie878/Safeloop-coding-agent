@@ -30,17 +30,11 @@ def test_deepseek_client_posts_expected_payload_and_returns_content():
     assert result == '{"tool_name":"run_tests"}'
     assert seen["url"] == "https://api.deepseek.com/chat/completions"
     assert seen["authorization"] == "Bearer sk-test"
-    assert seen["body"] == {
-        "model": "deepseek-v4-flash",
-        "messages": [
-            {
-                "role": "system",
-                "content": "You are SafeLoop. Respond with JSON actions only.",
-            },
-            {"role": "user", "content": "Run the tests"},
-        ],
-        "stream": False,
-    }
+    assert seen["body"]["model"] == "deepseek-v4-flash"
+    assert seen["body"]["messages"][0]["role"] == "system"
+    assert "exactly one JSON object" in seen["body"]["messages"][0]["content"]
+    assert seen["body"]["messages"][1] == {"role": "user", "content": "Run the tests"}
+    assert seen["body"]["stream"] is False
 
 
 def test_deepseek_client_accepts_explicit_model_override():
@@ -53,6 +47,80 @@ def test_deepseek_client_accepts_explicit_model_override():
     client = DeepSeekClient(api_key="sk-test", model="deepseek-v4-pro", http_client=http_client)
 
     assert client.complete(LLMRequest(task="Explain", feedback=[], memories=[], events=[])) == "ok"
+
+
+def test_deepseek_client_default_timeout_allows_slow_model_responses():
+    client = DeepSeekClient(api_key="sk-test")
+
+    try:
+        assert client.http_client.timeout.read == 600.0
+    finally:
+        client.http_client.close()
+
+
+def test_deepseek_client_prompt_requests_chinese_user_facing_finish_messages():
+    seen: dict[str, object] = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen["body"] = json.loads(request.content.decode("utf-8"))
+        return httpx.Response(200, json={"choices": [{"message": {"content": "ok"}}]})
+
+    http_client = httpx.Client(transport=httpx.MockTransport(handler))
+    client = DeepSeekClient(api_key="sk-test", http_client=http_client)
+
+    assert client.complete(LLMRequest(task="写一份快速排序示例", feedback=[], memories=[], events=[])) == "ok"
+
+    system_prompt = seen["body"]["messages"][0]["content"]
+    assert "中文" in system_prompt
+    assert "finish" in system_prompt
+    assert "message" in system_prompt
+
+
+def test_deepseek_client_prompt_answers_information_only_requests_without_file_changes():
+    seen: dict[str, object] = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen["body"] = json.loads(request.content.decode("utf-8"))
+        return httpx.Response(200, json={"choices": [{"message": {"content": "ok"}}]})
+
+    http_client = httpx.Client(transport=httpx.MockTransport(handler))
+    client = DeepSeekClient(api_key="sk-test", http_client=http_client)
+
+    assert client.complete(LLMRequest(task="解释一下快速排序", feedback=[], memories=[], events=[])) == "ok"
+
+    system_prompt = seen["body"]["messages"][0]["content"]
+    assert "information-only" in system_prompt
+    assert "finish" in system_prompt
+    assert "without writing or modifying files" in system_prompt
+
+
+def test_deepseek_client_prompt_describes_single_json_tool_action_contract():
+    seen: dict[str, object] = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen["body"] = json.loads(request.content.decode("utf-8"))
+        return httpx.Response(200, json={"choices": [{"message": {"content": "ok"}}]})
+
+    http_client = httpx.Client(transport=httpx.MockTransport(handler))
+    client = DeepSeekClient(api_key="sk-test", http_client=http_client)
+
+    assert client.complete(
+        LLMRequest(
+            task="Fix the project",
+            feedback=[],
+            memories=[],
+            events=[],
+            tool_schemas=[{"name": "read_file"}, {"name": "patch_file"}, {"name": "run_tests"}],
+        )
+    ) == "ok"
+
+    messages = seen["body"]["messages"]
+    system_prompt = messages[0]["content"]
+    context_text = messages[2]["content"]
+    assert "exactly one JSON object" in system_prompt
+    assert "tool_name" in system_prompt
+    assert "patch_file" in context_text
+    assert "run_tests" in context_text
 
 
 def test_deepseek_client_serializes_redacted_agent_context():
@@ -147,6 +215,17 @@ def test_deepseek_client_raises_clear_error_on_non_2xx_response():
     client = DeepSeekClient(api_key="sk-test", http_client=http_client)
 
     with pytest.raises(DeepSeekClientError, match="401"):
+        client.complete(LLMRequest(task="Explain", feedback=[], memories=[], events=[]))
+
+
+def test_deepseek_client_wraps_read_timeout_as_clear_error():
+    def handler(request: httpx.Request) -> httpx.Response:
+        raise httpx.ReadTimeout("slow response", request=request)
+
+    http_client = httpx.Client(transport=httpx.MockTransport(handler))
+    client = DeepSeekClient(api_key="sk-test", http_client=http_client)
+
+    with pytest.raises(DeepSeekClientError, match="timed out"):
         client.complete(LLMRequest(task="Explain", feedback=[], memories=[], events=[]))
 
 

@@ -4,6 +4,8 @@ from pathlib import Path
 import shutil
 
 from safeloop.demo import DEMO_RESPONSES, run_harness
+from safeloop.demo import print_run_summary
+from safeloop.models import Event, RunRecord
 
 
 def _event_payloads(events, event_type: str):
@@ -23,6 +25,30 @@ def test_demo_command_exits_zero_and_prints_mechanism_events():
     assert "patch_file success=True" in result.stdout
     assert "run_tests success=True" in result.stdout
     assert "finished" in result.stdout
+
+
+def test_print_run_summary_shows_failed_boundary_error(capsys):
+    run = RunRecord(
+        id="run-failed",
+        task="write code",
+        workspace=Path("."),
+        status="failed",
+        current_step=1,
+    )
+    events = [
+        Event(
+            run_id="run-failed",
+            step=1,
+            type="failed",
+            payload={"reason": "boundary_error", "error": "DeepSeekClientError: request failed"},
+        )
+    ]
+
+    print_run_summary(run, events)
+
+    output = capsys.readouterr().out
+    assert "boundary_error" in output
+    assert "DeepSeekClientError: request failed" in output
 
 
 def test_run_command_accepts_config_task_and_mock_finish_response(tmp_path: Path):
