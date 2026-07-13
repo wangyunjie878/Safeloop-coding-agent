@@ -2458,7 +2458,7 @@ PR evidence: `feature/deepseek-chat-cli` was pushed and published as GitHub PR #
 
 ### Task 22: README Delivery Sections and Distribution Notes
 
-**Status:** completed in commit `pending` (to be recorded after commit).
+**Status:** completed in commit `2155e16` (`docs(task-22): complete readme delivery sections`).
 
 **Goal:** 补齐最终交付要求中的 README 章节，明确项目简介、安装、运行、分发命令、目录结构、安全边界说明、获取方式、Key 安全配置和已知限制。
 
