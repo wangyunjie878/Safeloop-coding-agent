@@ -2430,6 +2430,32 @@ PR evidence: `feature/deepseek-chat-cli` was pushed and published as GitHub PR #
 
 ---
 
+### Task 21: Information-Only Chat Answers
+
+**Status:** completed in commit `pending` (to be recorded after commit).
+
+**Goal:** 修复 SafeLoop chat 对“解释一下快速排序”这类问答请求也倾向于写文件的问题。信息型、解释型、概念型请求应直接用 `finish` 返回中文自然语言答案，不应创建或修改文件。
+
+**Files:**
+
+- Modify: `safeloop/llm/deepseek.py`
+- Modify: `tests/test_deepseek_client.py`
+- Modify: `PLAN.md`
+- Modify: `AGENT_LOG.md`
+
+**TDD evidence:**
+
+- RED: `python -m pytest tests/test_deepseek_client.py::test_deepseek_client_prompt_answers_information_only_requests_without_file_changes -q` -> 1 failed. Failure showed the DeepSeek system prompt did not contain an information-only rule or `without writing or modifying files`.
+- GREEN: same focused command -> `1 passed`.
+- Focused verification: `python -m pytest tests/test_deepseek_client.py tests/test_cli_deepseek_chat.py -q` -> `17 passed`.
+
+**Implementation notes:**
+
+- The DeepSeek system prompt now tells the model that information-only requests, such as explanations, questions, or conceptual help, should be answered through the `finish` tool without writing or modifying files.
+- The `finish.message` guidance now distinguishes changed-file tasks from pure Q&A: if files changed, explain what changed and where; otherwise answer the user's question directly.
+
+---
+
 ## Review Gates for Every Task
 
 Each task must pass two review gates before moving to the next task:

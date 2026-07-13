@@ -76,6 +76,24 @@ def test_deepseek_client_prompt_requests_chinese_user_facing_finish_messages():
     assert "message" in system_prompt
 
 
+def test_deepseek_client_prompt_answers_information_only_requests_without_file_changes():
+    seen: dict[str, object] = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen["body"] = json.loads(request.content.decode("utf-8"))
+        return httpx.Response(200, json={"choices": [{"message": {"content": "ok"}}]})
+
+    http_client = httpx.Client(transport=httpx.MockTransport(handler))
+    client = DeepSeekClient(api_key="sk-test", http_client=http_client)
+
+    assert client.complete(LLMRequest(task="解释一下快速排序", feedback=[], memories=[], events=[])) == "ok"
+
+    system_prompt = seen["body"]["messages"][0]["content"]
+    assert "information-only" in system_prompt
+    assert "finish" in system_prompt
+    assert "without writing or modifying files" in system_prompt
+
+
 def test_deepseek_client_prompt_describes_single_json_tool_action_contract():
     seen: dict[str, object] = {}
 
