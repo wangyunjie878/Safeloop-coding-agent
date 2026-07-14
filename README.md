@@ -180,7 +180,7 @@ make test
 Windows 上如果没有 GNU Make，可以使用等价命令：
 
 ```bash
-python -m pytest
+python -m pytest -q
 ```
 
 本项目的核心机制测试使用 mock/stub LLM，不依赖网络，也不会调用真实 DeepSeek。测试覆盖主循环、工具分发、护栏拦截、反馈闭环、凭据脱敏、CLI 和分发配置。
@@ -192,12 +192,12 @@ GitHub Actions 配置文件位于 `.github/workflows/ci.yml`。每次 push 和 p
 CI 会执行：
 
 ```text
-python -m pytest
+python -m pytest -q
 python -m safeloop demo
 docker build -t safeloop-agent .
 ```
 
-GitLab CI 兼容配置位于 `.gitlab-ci.yml`，其中包含作业要求里的 `unit-test` job，并运行 `python -m pytest`。
+GitLab CI 兼容配置位于 `.gitlab-ci.yml`，其中包含作业要求里的 `unit-test` job，并运行 `python -m pytest -q`。
 
 ## 分发命令 / Distribution
 
@@ -218,4 +218,4 @@ docker run --rm -p 8000:8000 safeloop-agent
 - WebUI 主要用于展示和 API smoke test，功能比 CLI 少。
 - Docker 镜像默认运行 mock WebUI，不内置真实 LLM key。
 - DeepSeek 调用依赖用户自己的 key 和网络环境；CI 不会调用真实 DeepSeek。
-- Windows 本地如果没有 GNU Make，请使用 `python -m pytest` 替代 `make test`。
+- Windows 本地如果没有 GNU Make，请使用 `python -m pytest -q` 替代 `make test`。
