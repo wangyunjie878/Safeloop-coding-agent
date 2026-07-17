@@ -28,6 +28,8 @@ python -m pip install -e ".[dev]"
 
 下面是从零开始的完整使用流程。
 
+先打开命令行终端：Windows 可以使用 PowerShell 或 CMD，macOS/Linux 可以使用 Terminal。下面的命令都在命令行终端里执行。
+
 ### 1. 获取源码 / 获取方式
 
 从 GitHub 拉取项目：
@@ -171,15 +173,19 @@ SafeLoop 的工具执行受 workspace 限制：文件读取、写入、patch 和
 
 ## 测试 / Testing
 
+在 SafeLoop 仓库根目录运行测试，也就是包含 `README.md`、`safeloop/` 和 `tests/` 的目录。
+
 一键测试命令：
 
 ```bash
+cd path/to/Safeloop-coding-agent
 make test
 ```
 
 Windows 上如果没有 GNU Make，可以使用等价命令：
 
 ```bash
+cd path/to/Safeloop-coding-agent
 python -m pytest -q
 ```
 
