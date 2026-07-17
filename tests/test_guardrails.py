@@ -72,6 +72,24 @@ def test_guardrail_requires_approval_for_configured_command(tmp_path: Path):
     assert decision.risk_level == "medium"
 
 
+def test_guardrail_requires_approval_for_default_file_delete_commands(tmp_path: Path):
+    engine = GuardrailEngine(make_config(tmp_path))
+
+    for command in ["del bubble.py", "rm bubble.py", "Remove-Item bubble.py"]:
+        action = AgentAction(
+            tool_name="run_command",
+            arguments={"command": command},
+            reason="delete a file",
+            expected_outcome="file removed after approval",
+        )
+
+        decision = engine.evaluate(action)
+
+        assert decision.decision == "require_approval"
+        assert decision.risk_level == "medium"
+        assert "delete" in decision.reason.lower()
+
+
 def test_guardrail_normalizes_command_whitespace_before_matching(tmp_path: Path):
     engine = GuardrailEngine(make_config(tmp_path))
     blocked_action = AgentAction(

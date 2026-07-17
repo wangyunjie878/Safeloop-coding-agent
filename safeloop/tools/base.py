@@ -11,6 +11,7 @@ class ToolContext(BaseModel):
     config: HarnessConfig
     run_id: str
     step: int
+    approval_granted: bool = False
 
 
 class ToolSpec(BaseModel):

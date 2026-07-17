@@ -11,7 +11,7 @@ from .config import default_config_for_workspace, load_config
 from .credentials import CredentialError, CredentialManager
 from .demo import print_chat_summary, print_run_summary, run_demo, run_harness, run_harness_with_config
 from .llm.deepseek import DeepSeekClient
-from .models import HarnessConfig
+from .models import AgentAction, GuardrailDecision, HarnessConfig
 
 
 _DEFAULT_MOCK_FINISH_RESPONSE = (
@@ -88,17 +88,22 @@ def _run_command(args: argparse.Namespace) -> int:
         llm_client = _build_deepseek_client(config, args)
         if llm_client is None:
             return 1
-        run, events = run_harness_with_config(args.task, config, llm_client)
+        run, events = run_harness_with_config(args.task, config, llm_client, approval_callback=_prompt_for_approval)
         print_run_summary(run, events)
         return 0 if run.status == "finished" else 1
 
     mock_responses = list(args.mock_response) or [_DEFAULT_MOCK_FINISH_RESPONSE]
     if args.config:
-        run, events = run_harness(args.task, Path(args.config), mock_responses)
+        run, events = run_harness(args.task, Path(args.config), mock_responses, approval_callback=_prompt_for_approval)
     else:
         from .llm.mock import MockLLMClient
 
-        run, events = run_harness_with_config(args.task, config, MockLLMClient(mock_responses))
+        run, events = run_harness_with_config(
+            args.task,
+            config,
+            MockLLMClient(mock_responses),
+            approval_callback=_prompt_for_approval,
+        )
     print_run_summary(run, events)
     return 0 if run.status == "finished" else 1
 
@@ -132,6 +137,18 @@ def _build_deepseek_client(config: HarnessConfig, args: argparse.Namespace) -> D
     return DeepSeekClient(api_key=api_key, model=model)
 
 
+def _prompt_for_approval(action: AgentAction, decision: GuardrailDecision) -> bool:
+    print("需要人工审批后才能执行以下操作：")
+    print(f"- tool: {action.tool_name}")
+    if "command" in action.arguments:
+        print(f"- command: {action.arguments['command']}")
+    if "path" in action.arguments:
+        print(f"- path: {action.arguments['path']}")
+    print(f"- reason: {decision.reason}")
+    answer = input("是否允许执行？输入 y 或 yes 允许，其它输入表示拒绝: ").strip().casefold()
+    return answer in {"y", "yes"}
+
+
 def _run_chat_command(args: argparse.Namespace) -> int:
     config = _resolve_runtime_config(args)
     llm_provider = config.llm_provider
@@ -156,15 +173,20 @@ def _run_chat_command(args: argparse.Namespace) -> int:
                 llm_client = _build_deepseek_client(config, args)
                 if llm_client is None:
                     return 1
-                run, events = run_harness_with_config(task, config, llm_client)
+                run, events = run_harness_with_config(task, config, llm_client, approval_callback=_prompt_for_approval)
             else:
                 mock_responses = list(args.mock_response) or [_DEFAULT_MOCK_FINISH_RESPONSE]
                 if args.config:
-                    run, events = run_harness(task, Path(args.config), mock_responses)
+                    run, events = run_harness(task, Path(args.config), mock_responses, approval_callback=_prompt_for_approval)
                 else:
                     from .llm.mock import MockLLMClient
 
-                    run, events = run_harness_with_config(task, config, MockLLMClient(mock_responses))
+                    run, events = run_harness_with_config(
+                        task,
+                        config,
+                        MockLLMClient(mock_responses),
+                        approval_callback=_prompt_for_approval,
+                    )
         except KeyboardInterrupt:
             print()
             print("已终止当前任务，SafeLoop 仍在运行。")

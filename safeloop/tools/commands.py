@@ -59,6 +59,8 @@ def _guardrail_result(context: ToolContext, tool_name: str, command: str) -> Too
     decision = GuardrailEngine(context.config).evaluate(action)
     if decision.decision == "allow":
         return None
+    if decision.decision == "require_approval" and context.approval_granted:
+        return None
     return _tool_result(
         tool_name,
         False,

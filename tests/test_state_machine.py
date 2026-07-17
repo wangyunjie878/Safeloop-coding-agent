@@ -25,6 +25,16 @@ def make_config(
     )
 
 
+def make_config_requiring_python_command_approval(workspace: Path) -> HarnessConfig:
+    return HarnessConfig(
+        workspace=workspace,
+        test_command="python -c \"print('tests pass')\"",
+        blocked_commands=["git push"],
+        approval_required_commands=["python -c"],
+        max_steps=10,
+    )
+
+
 def event_types(store: EventLogStore, run_id: str) -> list[str]:
     return [event.type for event in store.list(run_id)]
 
@@ -65,6 +75,62 @@ def test_state_machine_guardrail_blocks_dangerous_action_before_dispatch(tmp_pat
     assert any(event.type == "guardrail_decision" and event.payload["decision"] == "deny" for event in events)
     assert any(event.type == "feedback_added" and event.payload["kind"] == "guardrail_blocked" for event in events)
     assert not any(event.type == "tool_result" and event.payload["tool_name"] == "run_command" for event in events)
+
+
+def test_state_machine_denies_approval_required_action_without_dispatch(tmp_path: Path):
+    target = tmp_path / "bubble.py"
+    target.write_text("print('bubble')\n", encoding="utf-8")
+    delete_command = "python -c \"from pathlib import Path; Path('bubble.py').unlink()\""
+    store = EventLogStore()
+    manager = RunManager(event_store=store)
+    client = MockLLMClient(
+        responses=[
+            f'{{"tool_name":"run_command","arguments":{{"command":{json.dumps(delete_command)}}},"reason":"delete","expected_outcome":"deleted"}}',
+            '{"tool_name":"finish","arguments":{"message":"not deleted"},"reason":"denied","expected_outcome":"stop"}',
+        ]
+    )
+    machine = AgentStateMachine(
+        run_manager=manager,
+        event_store=store,
+        llm_client=client,
+        approval_callback=lambda _action, _decision: False,
+    )
+
+    run = machine.run("delete bubble.py", make_config_requiring_python_command_approval(tmp_path))
+    events = store.list(run.id)
+
+    assert run.status == "finished"
+    assert target.exists()
+    assert any(event.type == "approval_decision" and event.payload["approved"] is False for event in events)
+    assert not any(event.type == "tool_result" and event.payload["tool_name"] == "run_command" for event in events)
+
+
+def test_state_machine_dispatches_approval_required_action_after_approval(tmp_path: Path):
+    target = tmp_path / "bubble.py"
+    target.write_text("print('bubble')\n", encoding="utf-8")
+    delete_command = "python -c \"from pathlib import Path; Path('bubble.py').unlink()\""
+    store = EventLogStore()
+    manager = RunManager(event_store=store)
+    client = MockLLMClient(
+        responses=[
+            f'{{"tool_name":"run_command","arguments":{{"command":{json.dumps(delete_command)}}},"reason":"delete","expected_outcome":"deleted"}}',
+            '{"tool_name":"finish","arguments":{"message":"deleted"},"reason":"done","expected_outcome":"stop"}',
+        ]
+    )
+    machine = AgentStateMachine(
+        run_manager=manager,
+        event_store=store,
+        llm_client=client,
+        approval_callback=lambda _action, _decision: True,
+    )
+
+    run = machine.run("delete bubble.py", make_config_requiring_python_command_approval(tmp_path))
+    events = store.list(run.id)
+
+    assert run.status == "finished"
+    assert not target.exists()
+    assert any(event.type == "approval_decision" and event.payload["approved"] is True for event in events)
+    assert any(event.type == "tool_result" and event.payload["tool_name"] == "run_command" for event in events)
 
 
 class FeedbackAwareLLM:

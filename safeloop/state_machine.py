@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from enum import StrEnum
 
 from safeloop.actions import ActionParseError, parse_action
@@ -7,7 +8,7 @@ from safeloop.config import HarnessConfig, collect_runtime_redaction_secrets
 from safeloop.events import EventLogStore
 from safeloop.feedback import FeedbackClassifier
 from safeloop.llm.base import LLMClient, LLMRequest
-from safeloop.models import Event, Feedback, GuardrailDecision, RunRecord, ToolResult
+from safeloop.models import AgentAction, Event, Feedback, GuardrailDecision, RunRecord, ToolResult
 from safeloop.run_manager import RunManager
 from safeloop.security.guardrails import GuardrailEngine
 from safeloop.tools.dispatcher import ToolDispatcher
@@ -20,6 +21,9 @@ class StopReason(StrEnum):
     PARSE_ERRORS = "parse_errors"
 
 
+ApprovalCallback = Callable[[AgentAction, GuardrailDecision], bool]
+
+
 class AgentStateMachine:
     def __init__(
         self,
@@ -27,11 +31,13 @@ class AgentStateMachine:
         event_store: EventLogStore,
         llm_client: LLMClient,
         feedback_classifier: FeedbackClassifier | None = None,
+        approval_callback: ApprovalCallback | None = None,
     ) -> None:
         self._run_manager = run_manager
         self._event_store = event_store
         self._llm_client = llm_client
         self._feedback_classifier = feedback_classifier or FeedbackClassifier()
+        self._approval_callback = approval_callback
 
     def run(self, task: str, config: HarnessConfig) -> RunRecord:
         run = self._run_manager.create_run(task, config)
@@ -81,10 +87,25 @@ class AgentStateMachine:
                     self._append_feedback(run.id, step, item)
                     continue
                 if decision.decision == "require_approval":
-                    item = self._feedback_classifier.from_guardrail(decision, known_secrets=known_secrets)
-                    feedback.append(item)
-                    self._append_feedback(run.id, step, item)
-                    continue
+                    approved = self._approval_callback(action, decision) if self._approval_callback is not None else False
+                    self._append_event(
+                        run.id,
+                        step,
+                        "approval_decision",
+                        {
+                            "approved": approved,
+                            "tool_name": action.tool_name,
+                            "matched_rule": decision.matched_rule,
+                        },
+                    )
+                    if not approved:
+                        item = self._feedback_classifier.from_guardrail(decision, known_secrets=known_secrets)
+                        feedback.append(item)
+                        self._append_feedback(run.id, step, item)
+                        continue
+                    dispatcher = ToolDispatcher(
+                        ToolContext(config=config, run_id=run.id, step=step, approval_granted=True)
+                    )
 
                 result = dispatcher.dispatch(action)
                 self._append_tool_result(run.id, step, result)

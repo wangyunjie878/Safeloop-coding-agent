@@ -169,6 +169,8 @@ Dockerfile                Docker 分发配置
 
 SafeLoop 的工具执行受 workspace 限制：文件读取、写入、patch 和命令执行默认只能发生在用户选择的工作目录中。路径逃逸、敏感文件、危险命令和超时命令会被拒绝或反馈给 agent。项目还会对事件日志、反馈和 provider 上下文中的已知 secret 做脱敏处理。
 
+删除类命令默认需要人工审批，例如 `del file.py`、`rm file.py`、`Remove-Item file.py`。在 CLI 对话模式下，SafeLoop 会显示待执行的 tool/command，并要求用户输入 `y` 或 `yes` 后才会继续执行；其它输入会拒绝该动作并把反馈交回 agent。
+
 需要注意的是，SafeLoop 是教学型 harness，不是完整沙箱或权限隔离系统。它能减少误操作风险，但不能替代操作系统权限、容器隔离、代码审查或真实生产环境的安全策略。
 
 ## 测试 / Testing

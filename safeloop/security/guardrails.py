@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import re
 from typing import Iterable
 
 from safeloop.config import HarnessConfig
@@ -27,6 +28,17 @@ _DEFAULT_BLOCKED_COMMAND_PATTERNS = (
     "drop database",
     "shutdown",
     "reboot",
+)
+_DEFAULT_APPROVAL_COMMAND_NAMES = {
+    "del",
+    "erase",
+    "rm",
+    "remove-item",
+    "ri",
+    "unlink",
+}
+_COMMAND_NAME_PATTERN = re.compile(
+    r"^\s*(?:cmd(?:\.exe)?\s+/c\s+|powershell(?:\.exe)?\s+-command\s+)?(?:&\s*)?[\"']?([a-zA-Z0-9_.-]+)"
 )
 
 
@@ -100,6 +112,16 @@ def _command_matches(command: str, patterns: Iterable[str]) -> str | None:
         normalized_pattern = " ".join(pattern.casefold().split())
         if normalized_pattern and normalized_pattern in normalized:
             return pattern
+    return None
+
+
+def _default_approval_command_match(command: str) -> str | None:
+    match = _COMMAND_NAME_PATTERN.match(command.casefold())
+    if match is None:
+        return None
+    command_name = match.group(1)
+    if command_name in _DEFAULT_APPROVAL_COMMAND_NAMES:
+        return command_name
     return None
 
 
@@ -228,6 +250,15 @@ class GuardrailEngine:
                 risk_level="medium",
                 reason="command requires approval",
                 matched_rule=f"approval_required_command:{approval_rule}",
+            )
+
+        default_approval_rule = _default_approval_command_match(command)
+        if default_approval_rule is not None:
+            return GuardrailDecision(
+                decision="require_approval",
+                risk_level="medium",
+                reason="delete command requires human approval",
+                matched_rule=f"default_approval_command:{default_approval_rule}",
             )
 
         return GuardrailDecision(
