@@ -24,6 +24,8 @@ def test_agent_log_contains_task_entries():
 def test_reflection_marks_human_owned_report():
     text = Path("REFLECTION.md").read_text(encoding="utf-8")
 
-    assert "Human-Owned Reflection" in text
+    assert text.startswith("# 反思")
+    assert "AI 辅助润色标识" in text
+    assert "本文内容由本人确定观点" in text
     assert "TDD" in text
     assert "Superpowers" in text
