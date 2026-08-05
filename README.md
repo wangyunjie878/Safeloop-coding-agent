@@ -34,7 +34,17 @@ python -m pip install -e ".[dev]"
 
 #### 方式一：从 Release 下载（无需安装 Git）
 
-打开 [SafeLoop v0.1.0 Release](https://github.com/wangyunjie878/Safeloop-coding-agent/releases/tag/v0.1.0)，在页面底部展开 `Assets`，点击 `Source code (zip)` 下载源码压缩包。解压后，打开命令行并进入解压得到的项目根目录，也就是包含 `pyproject.toml` 的目录。
+1. 打开 [SafeLoop v0.1.0 Release](https://github.com/wangyunjie878/Safeloop-coding-agent/releases/tag/v0.1.0)。
+2. 在页面底部展开 `Assets`，点击 `Source code (zip)` 下载源码压缩包。
+3. 解压 ZIP，得到类似 `Safeloop-coding-agent-0.1.0` 的文件夹。
+4. 打开这个文件夹，确认其中能看到 `pyproject.toml`。
+5. 在该文件夹中打开 PowerShell、CMD 或 Terminal，然后执行：
+
+```bash
+python -m pip install -e .
+```
+
+Windows 用户可以在文件资源管理器中打开该文件夹，点击地址栏，输入 `powershell` 并按回车，即可在正确目录打开终端。安装命令执行成功后，继续下面第 3 步配置 DeepSeek API key。
 
 Release 是发布时的固定版本，适合普通用户下载和安装。
 
@@ -49,7 +59,7 @@ cd Safeloop-coding-agent
 
 ### 2. 安装 SafeLoop
 
-普通使用安装：
+无论使用 Release 下载还是 Git 克隆，安装命令都必须在 SafeLoop 项目根目录执行，也就是当前目录中能看到 `pyproject.toml`。普通使用安装：
 
 ```bash
 python -m pip install -e .
