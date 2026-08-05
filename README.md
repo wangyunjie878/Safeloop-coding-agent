@@ -32,14 +32,20 @@ python -m pip install -e ".[dev]"
 
 ### 1. 获取源码 / 获取方式
 
-从 GitHub 拉取项目：
+#### 方式一：从 Release 下载（无需安装 Git）
+
+打开 [SafeLoop v0.1.0 Release](https://github.com/wangyunjie878/Safeloop-coding-agent/releases/tag/v0.1.0)，在页面底部展开 `Assets`，点击 `Source code (zip)` 下载源码压缩包。解压后，打开命令行并进入解压得到的项目根目录，也就是包含 `pyproject.toml` 的目录。
+
+Release 是发布时的固定版本，适合普通用户下载和安装。
+
+#### 方式二：使用 Git 克隆（电脑已安装 Git）
+
+如果电脑已经安装 Git，可以在命令行拉取 `main` 分支的最新代码：
 
 ```bash
 git clone https://github.com/wangyunjie878/Safeloop-coding-agent.git
 cd Safeloop-coding-agent
 ```
-
-也可以直接下载 GitHub ZIP 包，解压后进入 `Safeloop-coding-agent` 文件夹。
 
 ### 2. 安装 SafeLoop
 
