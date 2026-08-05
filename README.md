@@ -44,7 +44,13 @@ python -m pip install -e ".[dev]"
 python -m pip install -e .
 ```
 
-Windows 用户可以在文件资源管理器中打开该文件夹，点击地址栏，输入 `powershell` 并按回车，即可在正确目录打开终端。安装命令执行成功后，继续下面第 3 步配置 DeepSeek API key。
+如果要运行测试或继续开发，改用开发安装：
+
+```bash
+python -m pip install -e ".[dev]"
+```
+
+Windows 用户可以在文件资源管理器中打开该文件夹，点击地址栏，输入 `powershell` 并按回车，即可在正确目录打开终端。安装命令执行成功后，继续下面第 2 步配置 DeepSeek API key。
 
 Release 是发布时的固定版本，适合普通用户下载和安装。
 
@@ -57,9 +63,7 @@ git clone https://github.com/wangyunjie878/Safeloop-coding-agent.git
 cd Safeloop-coding-agent
 ```
 
-### 2. 安装 SafeLoop
-
-无论使用 Release 下载还是 Git 克隆，安装命令都必须在 SafeLoop 项目根目录执行，也就是当前目录中能看到 `pyproject.toml`。普通使用安装：
+上面的 `cd` 命令会进入 SafeLoop 项目根目录，也就是包含 `pyproject.toml` 的目录。普通使用安装：
 
 ```bash
 python -m pip install -e .
@@ -71,7 +75,9 @@ python -m pip install -e .
 python -m pip install -e ".[dev]"
 ```
 
-### 3. 配置 DeepSeek API key
+安装命令执行成功后，继续下面第 2 步配置 DeepSeek API key。
+
+### 2. 配置 DeepSeek API key
 
 运行：
 
@@ -81,7 +87,7 @@ python -m safeloop credentials set --provider deepseek
 
 终端会提示你输入 DeepSeek API key。粘贴时终端不会显示你粘贴的 key，这是正常的安全行为；粘贴完成后直接按回车即可。SafeLoop 会把 key 写入系统 keyring，之后再次启动通常不需要重复输入。
 
-### 4. 选择要操作的代码目录
+### 3. 选择要操作的代码目录
 
 进入你要让 agent 操作的代码目录，也就是你希望它读写文件、执行命令、运行测试的那个文件夹：
 
@@ -95,7 +101,7 @@ Windows 示例：
 cd "D:\new code"
 ```
 
-### 5. 启动对话式 agent
+### 4. 启动对话式 agent
 
 在你的代码目录里运行：
 

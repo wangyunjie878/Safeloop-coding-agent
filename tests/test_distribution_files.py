@@ -54,10 +54,9 @@ def test_readme_install_and_run_flow_is_chinese_first():
 
     ordered_phrases = [
         "### 1. 获取源码",
-        "### 2. 安装 SafeLoop",
-        "### 3. 配置 DeepSeek API key",
-        "### 4. 选择要操作的代码目录",
-        "### 5. 启动对话式 agent",
+        "### 2. 配置 DeepSeek API key",
+        "### 3. 选择要操作的代码目录",
+        "### 4. 启动对话式 agent",
     ]
     positions = [text.index(phrase) for phrase in ordered_phrases]
     assert positions == sorted(positions)
