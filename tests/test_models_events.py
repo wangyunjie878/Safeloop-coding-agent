@@ -64,6 +64,7 @@ def test_tool_result_matches_documented_contract():
         "stderr",
         "summary",
         "duration_ms",
+        "changed_files",
     ]
 
 

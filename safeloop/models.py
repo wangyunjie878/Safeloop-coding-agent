@@ -79,6 +79,7 @@ class ToolResult(_SafeLoopBaseModel):
     stderr: str = ""
     summary: str = ""
     duration_ms: int = 0
+    changed_files: list[str] = Field(default_factory=list)
 
 
 class GuardrailDecision(_SafeLoopBaseModel):

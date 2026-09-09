@@ -74,6 +74,10 @@ def _is_binary_prefix(prefix: bytes) -> bool:
     return b"\x00" in prefix
 
 
+def _relative_display_path(context: ToolContext, candidate: Path) -> str:
+    return candidate.relative_to(_workspace_root(context)).as_posix()
+
+
 class FileTools:
     def __init__(self, context: ToolContext):
         self._context = context
@@ -145,7 +149,12 @@ class FileTools:
 
         candidate.parent.mkdir(parents=True, exist_ok=True)
         candidate.write_text(content, encoding="utf-8")
-        return _tool_result("write_file", True, f"wrote {path}")
+        return _tool_result(
+            "write_file",
+            True,
+            f"wrote {path}",
+            changed_files=[_relative_display_path(self._context, candidate)],
+        )
 
     def patch_file(self, path: str, old: str, new: str) -> ToolResult:
         candidate = _ensure_workspace_path(self._context, path, "patch_file")
@@ -162,4 +171,9 @@ class FileTools:
             return _tool_result("patch_file", False, "patch text must appear exactly once")
 
         candidate.write_text(text.replace(old, new, 1), encoding="utf-8")
-        return _tool_result("patch_file", True, f"patched {path}")
+        return _tool_result(
+            "patch_file",
+            True,
+            f"patched {path}",
+            changed_files=[_relative_display_path(self._context, candidate)],
+        )

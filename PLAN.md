@@ -2536,6 +2536,40 @@ PR evidence: `feature/deepseek-chat-cli` was pushed and published as GitHub PR #
 
 ---
 
+### Task 25: Complete Changed-File Reporting for Command Actions
+
+**Status:** implementation complete; commit and PR pending. Fresh full verification: `python -m pytest -q` produced `169 passed, 1 warning`; `python -m safeloop demo` finished with the required guardrail denial, test-failure feedback, patch, retest, and finish sequence.
+
+**Goal:** 修复 DeepSeek 通过 `run_command` 一次创建多个答案文件时，CLI 的“修改的文件”摘要只显示由 `write_file` 创建的第一份文件的问题。
+
+**Files:**
+
+- Modify: `safeloop/models.py`
+- Modify: `safeloop/tools/commands.py`
+- Modify: `safeloop/tools/files.py`
+- Modify: `safeloop/demo.py`
+- Modify: `tests/test_command_tools.py`
+- Modify: `tests/test_file_tools.py`
+- Modify: `tests/test_cli_deepseek_chat.py`
+- Modify: `tests/test_models_events.py`
+- Modify: `SPEC.md`
+- Modify: `PLAN.md`
+- Modify: `AGENT_LOG.md`
+
+**TDD evidence:**
+
+- RED: focused regression run produced `4 failed`; `ToolResult` lacked `changed_files`, command-created files were not recorded, and chat summary only showed `wrote 01_two_sum.py`.
+- GREEN: focused regression run produced `6 passed`; command actions report all changed workspace files, file tools report normalized relative paths, cache directories are excluded, and the chat summary lists all three answer files without duplicates.
+
+**Implementation notes:**
+
+- Command execution compares lightweight workspace snapshots before and after the subprocess and records changed relative paths.
+- Snapshot traversal does not follow directory symlinks and ignores `.git`, `.venv`, `venv`, `node_modules`, `__pycache__`, `.pytest_cache`, `.mypy_cache`, `.ruff_cache`, and `.safeloop`.
+- CLI reporting reads structured `changed_files` from every tool result and retains a compatibility fallback for older `write_file`/`patch_file` events.
+- No DeepSeek request, guardrail decision, command execution, credential, or mock-LLM behavior changes.
+
+---
+
 ## Review Gates for Every Task
 
 Each task must pass two review gates before moving to the next task:

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+from pathlib import Path
 import subprocess
 import time
 
@@ -7,6 +9,19 @@ from safeloop.models import AgentAction, ToolResult
 from safeloop.security.guardrails import GuardrailEngine
 
 from .base import ToolContext
+
+
+_IGNORED_CHANGE_DIRECTORIES = {
+    ".git",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
+    ".safeloop",
+    ".venv",
+    "__pycache__",
+    "node_modules",
+    "venv",
+}
 
 
 class CommandToolError(Exception):
@@ -22,6 +37,7 @@ def _tool_result(
     stdout: str = "",
     stderr: str = "",
     duration_ms: int = 0,
+    changed_files: list[str] | None = None,
 ) -> ToolResult:
     return ToolResult(
         tool_name=tool_name,
@@ -31,7 +47,38 @@ def _tool_result(
         stderr=stderr,
         summary=summary,
         duration_ms=duration_ms,
+        changed_files=changed_files or [],
     )
+
+
+def _snapshot_workspace(workspace: Path) -> dict[str, tuple[int, int]]:
+    root = workspace.resolve()
+    snapshot: dict[str, tuple[int, int]] = {}
+    for current_dir, directory_names, file_names in os.walk(root, followlinks=False):
+        directory_names[:] = [
+            name
+            for name in directory_names
+            if name not in _IGNORED_CHANGE_DIRECTORIES and not (Path(current_dir) / name).is_symlink()
+        ]
+        for name in file_names:
+            path = Path(current_dir) / name
+            try:
+                if path.is_symlink():
+                    continue
+                stat = path.stat()
+                relative_path = path.relative_to(root).as_posix()
+            except (OSError, ValueError):
+                continue
+            snapshot[relative_path] = (stat.st_mtime_ns, stat.st_size)
+    return snapshot
+
+
+def _changed_workspace_files(
+    before: dict[str, tuple[int, int]],
+    workspace: Path,
+) -> list[str]:
+    after = _snapshot_workspace(workspace)
+    return sorted(path for path in before.keys() | after.keys() if before.get(path) != after.get(path))
 
 
 def _coerce_stream(value: object) -> str:
@@ -77,6 +124,7 @@ def _execute_command(
     timeout: int,
 ) -> ToolResult:
     started = time.perf_counter()
+    workspace_before = _snapshot_workspace(context.config.workspace)
 
     try:
         completed = subprocess.run(
@@ -100,6 +148,7 @@ def _execute_command(
             stdout=stdout,
             stderr=stderr,
             duration_ms=duration_ms,
+            changed_files=_changed_workspace_files(workspace_before, context.config.workspace),
         )
     except subprocess.TimeoutExpired as exc:
         duration_ms = int((time.perf_counter() - started) * 1000)
@@ -119,6 +168,7 @@ def _execute_command(
             stdout=stdout,
             stderr=stderr,
             duration_ms=duration_ms,
+            changed_files=_changed_workspace_files(workspace_before, context.config.workspace),
         )
     except OSError as exc:
         duration_ms = int((time.perf_counter() - started) * 1000)
@@ -129,6 +179,7 @@ def _execute_command(
             exit_code=None,
             stderr=str(exc),
             duration_ms=duration_ms,
+            changed_files=_changed_workspace_files(workspace_before, context.config.workspace),
         )
 
 

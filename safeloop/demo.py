@@ -122,7 +122,7 @@ def print_chat_summary(run: RunRecord, events: list[Event]) -> None:
     else:
         print(f"任务结束，状态：{run.status}。")
 
-    changed_files = _successful_tool_summaries(events, {"write_file", "patch_file"})
+    changed_files = _changed_file_paths(events)
     if changed_files:
         print("修改的文件:")
         for summary in changed_files:
@@ -163,6 +163,33 @@ def _successful_tool_summaries(events: list[Event], tool_names: set[str]) -> lis
         if summary:
             summaries.append(summary)
     return summaries
+
+
+def _changed_file_paths(events: list[Event]) -> list[str]:
+    paths: list[str] = []
+    seen: set[str] = set()
+    for event in events:
+        if event.type != "tool_result":
+            continue
+        changed_files = event.payload.get("changed_files", [])
+        if isinstance(changed_files, list):
+            for value in changed_files:
+                path = str(value).strip()
+                if path and path not in seen:
+                    seen.add(path)
+                    paths.append(path)
+        if changed_files or event.payload.get("success") is not True:
+            continue
+        tool_name = event.payload.get("tool_name")
+        summary = str(event.payload.get("summary", "")).strip()
+        prefixes = {"write_file": "wrote ", "patch_file": "patched "}
+        prefix = prefixes.get(str(tool_name))
+        if prefix and summary.startswith(prefix):
+            path = summary[len(prefix) :].strip()
+            if path and path not in seen:
+                seen.add(path)
+                paths.append(path)
+    return paths
 
 
 def run_demo() -> int:

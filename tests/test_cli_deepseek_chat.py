@@ -5,6 +5,8 @@ from pathlib import Path
 import pytest
 
 from safeloop import cli
+from safeloop.demo import print_chat_summary
+from safeloop.models import Event, RunRecord
 
 
 class _FakeDeepSeekClient:
@@ -206,3 +208,42 @@ def test_chat_ctrl_c_stops_current_task_without_exiting_safeloop(
     assert exit_code == 0
     assert "正在执行任务" in output
     assert "已终止当前任务，SafeLoop 仍在运行。" in output
+
+
+def test_chat_summary_lists_files_changed_by_file_and_command_tools(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+):
+    run = RunRecord(id="run-1", task="solve three problems", workspace=tmp_path, status="finished")
+    events = [
+        Event(
+            run_id=run.id,
+            step=1,
+            type="tool_result",
+            payload={
+                "tool_name": "write_file",
+                "success": True,
+                "summary": "wrote 01_two_sum.py",
+                "changed_files": ["01_two_sum.py"],
+            },
+        ),
+        Event(
+            run_id=run.id,
+            step=2,
+            type="tool_result",
+            payload={
+                "tool_name": "run_command",
+                "success": True,
+                "summary": "command completed",
+                "changed_files": ["02_climbing_stairs.py", "03_coin_change.py"],
+            },
+        ),
+        Event(run_id=run.id, step=3, type="finished", payload={"message": "三道题已完成。"}),
+    ]
+
+    print_chat_summary(run, events)
+
+    output = capsys.readouterr().out
+    assert "- 01_two_sum.py" in output
+    assert "- 02_climbing_stairs.py" in output
+    assert "- 03_coin_change.py" in output
