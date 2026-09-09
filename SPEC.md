@@ -237,6 +237,7 @@ SafeLoop 包含以下组件：
 - `stderr`：标准错误片段。
 - `summary`：人类可读摘要。
 - `duration_ms`：工具耗时。
+- `changed_files`：工具执行期间在工作区内新增、修改或删除的文件相对路径列表；忽略版本库、虚拟环境、缓存和 SafeLoop 内部目录。
 
 约束：进入上下文的 stdout 和 stderr 必须限制长度。
 

@@ -45,6 +45,34 @@ def test_run_command_uses_config_workspace_as_cwd(tmp_path: Path):
     assert result.stdout.strip() == str(tmp_path.resolve())
 
 
+def test_run_command_reports_every_workspace_file_it_creates(tmp_path: Path):
+    tools = make_tools(tmp_path)
+
+    result = tools.run_command(
+        'python -c "from pathlib import Path; '
+        "Path('02_climbing_stairs.py').write_text('print(2)'); "
+        "Path('03_coin_change.py').write_text('print(3)')\""
+    )
+
+    assert result.success is True
+    assert result.changed_files == ["02_climbing_stairs.py", "03_coin_change.py"]
+
+
+def test_run_command_does_not_report_cache_files_as_user_changes(tmp_path: Path):
+    tools = make_tools(tmp_path)
+
+    result = tools.run_command(
+        'python -c "from pathlib import Path; '
+        "Path('__pycache__').mkdir(); Path('__pycache__/temp.pyc').write_text('cache'); "
+        "Path('.pytest_cache').mkdir(); Path('.pytest_cache/state').write_text('cache'); "
+        "Path('node_modules').mkdir(); Path('node_modules/package.js').write_text('dependency'); "
+        "Path('answer.py').write_text('print(42)')\""
+    )
+
+    assert result.success is True
+    assert result.changed_files == ["answer.py"]
+
+
 def test_run_command_blocks_dangerous_command_without_execution(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     tools = make_tools(tmp_path)
 

@@ -108,6 +108,7 @@ def test_write_file_creates_nested_file_inside_workspace(tmp_path: Path):
     result = tools.write_file("nested/output.txt", "content")
 
     assert result.success is True
+    assert result.changed_files == ["nested/output.txt"]
     assert (workspace / "nested" / "output.txt").read_text(encoding="utf-8") == "content"
 
 
@@ -133,6 +134,7 @@ def test_patch_file_replaces_unique_text(tmp_path: Path):
     result = tools.patch_file("app.py", "hello", "world")
 
     assert result.success is True
+    assert result.changed_files == ["app.py"]
     assert file_path.read_text(encoding="utf-8") == "print('world')\n"
 
 
