@@ -2538,7 +2538,7 @@ PR evidence: `feature/deepseek-chat-cli` was pushed and published as GitHub PR #
 
 ### Task 25: Complete Changed-File Reporting for Command Actions
 
-**Status:** implementation complete; commit and PR pending. Fresh full verification: `python -m pytest -q` produced `169 passed, 1 warning`; `python -m safeloop demo` finished with the required guardrail denial, test-failure feedback, patch, retest, and finish sequence.
+**Status:** completed in commit `d28ebfe` (`fix(task-25): report command-created files (no subagent)`); PR pending. Fresh full verification: `python -m pytest -q` produced `169 passed, 1 warning`; `python -m safeloop demo` finished with the required guardrail denial, test-failure feedback, patch, retest, and finish sequence.
 
 **Goal:** 修复 DeepSeek 通过 `run_command` 一次创建多个答案文件时，CLI 的“修改的文件”摘要只显示由 `write_file` 创建的第一份文件的问题。
 
